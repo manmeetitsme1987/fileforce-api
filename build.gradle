@@ -1,0 +1,68 @@
+buildscript {
+	ext {
+		springBootVersion = '1.2.0.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}");
+		classpath ("io.spring.gradle:dependency-management-plugin:0.5.4.RELEASE");
+		classpath("org.springframework.cloud:spring-cloud-aws-context:1.0.2.RELEASE");
+		classpath("commons-io:commons-io:2.4");
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'spring-boot'
+apply plugin: "io.spring.dependency-management"
+
+jar {
+	baseName = 'fileforce-api'
+	version = '0.0.1-SNAPSHOT'
+}
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'com.amazonaws:aws-java-sdk-bom:1.10.47'
+    }
+}
+
+
+dependencies {
+	compile ("com.amazonaws:aws-java-sdk-s3")
+	compile("org.springframework.boot:spring-boot-starter-web")
+	compile('org.springframework.boot:spring-boot-starter-actuator')
+	//compile('org.springframework.boot:spring-boot-actuator-docs')
+	compile('org.mybatis:mybatis:3.3.0')
+	compile('org.mybatis:mybatis-spring:1.2.2')
+	compile('org.springframework:spring-context:4.2.0.RELEASE')
+	compile('org.apache.tomcat:tomcat-jdbc:7.0.19')
+	compile('org.springframework:spring-tx:2.5.4')
+	compile('org.springframework:spring-jdbc:2.0.6')
+	compile("postgresql:postgresql:9.1-901.jdbc4")
+	compile("org.springframework.cloud:spring-cloud-aws-context:1.0.2.RELEASE")
+	compile("commons-io:commons-io:2.4")
+	
+	
+	
+	//compile("org.mybatis.spring.boot:mybatis-spring-boot-starter:1.1.1")
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+	testCompile("junit:junit")
+}
+
+
+eclipse {
+	classpath {
+		 containers.remove('org.eclipse.jdt.launching.JRE_CONTAINER')
+		 containers 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8'
+	}
+}
+
