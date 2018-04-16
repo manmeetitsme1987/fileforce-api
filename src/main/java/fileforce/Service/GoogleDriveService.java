@@ -139,6 +139,7 @@ public class GoogleDriveService {
 	public GoogleDriveFilesResponse getGoogleDriveData(GoogleDriveRequest gDriveRequest){
 		//if get request is being called for test purpose
 		if(gDriveRequest == null){
+			/*
 			String refreshToken = "1/rRLjhskgc93LO8FUivaMK-oY8P7pOe16wWS9EKy0pyih3kYil-qmONWxlWWhwqza";
 			String TOKEN_ENDPOINT = "https://www.googleapis.com/oauth2/v4/token";
 			String clientId = "619983446033-4d4i2ekkmfal2r29ngjegkc0t53qascs.apps.googleusercontent.com";
@@ -151,6 +152,7 @@ public class GoogleDriveService {
 													clientSecret,
 													clientRedirectURI,
 													endpoint); 
+		*/
 		}
 		GoogleDriveAuthResponse authResponse = getDriveDataWithRefreshToken(gDriveRequest);
 		GoogleDriveFilesResponse fileResponse = new GoogleDriveFilesResponse();
