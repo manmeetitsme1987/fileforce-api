@@ -129,34 +129,34 @@ public class GoogleDriveService {
                 System.out.printf("%s (%s)\n", file.getName(), file.getId());
             }
         }
-    	
-    	GoogleDriveAuthResponse authResponse = getDriveDataWithRefreshToken();
+    	GoogleDriveRequest gDriveRequest = prepareDummyData();
+    	GoogleDriveAuthResponse authResponse = getDriveDataWithRefreshToken(gDriveRequest);
     	if(authResponse != null){
-    		fetchFiles(authResponse);
+    		fetchFiles(authResponse, gDriveRequest);
     	}
     }*/
 	
-	public GoogleDriveFilesResponse getGoogleDriveData(GoogleDriveRequest gDriveRequest){
+    public static GoogleDriveRequest prepareDummyData(){
+    	GoogleDriveRequest gDriveRequest = new GoogleDriveRequest();
+		gDriveRequest.setRefresh_Token("1/rRLjhskgc93LO8FUivaMK-oY8P7pOe16wWS9EKy0pyih3kYil-qmONWxlWWhwqza");
+		gDriveRequest.setToken_endpoint("https://www.googleapis.com/oauth2/v4/token");
+		gDriveRequest.setClientId("619983446033-4d4i2ekkmfal2r29ngjegkc0t53qascs.apps.googleusercontent.com");
+		gDriveRequest.setClientSecret("zDJjNrgtxiVqOuy_C8pajVVm");
+		gDriveRequest.setClientRedirectURI("https://ff-ts-dev-ed.lightning.force.com/c/GoogleOAuthCompletion.app");
+		gDriveRequest.setEndpoint("https://www.googleapis.com/drive/v3/files");
+		return gDriveRequest;
+    }
+    
+	public String getGoogleDriveData(GoogleDriveRequest gDriveRequest){
 		//if get request is being called for test purpose
 		if(gDriveRequest == null){
-			gDriveRequest = new GoogleDriveRequest();
-			gDriveRequest.setRefresh_Token("1/rRLjhskgc93LO8FUivaMK-oY8P7pOe16wWS9EKy0pyih3kYil-qmONWxlWWhwqza");
-			gDriveRequest.setToken_endpoint("https://www.googleapis.com/oauth2/v4/token");
-			gDriveRequest.setClientId("619983446033-4d4i2ekkmfal2r29ngjegkc0t53qascs.apps.googleusercontent.com");
-			gDriveRequest.setClientSecret("zDJjNrgtxiVqOuy_C8pajVVm");
-			gDriveRequest.setClientRedirectURI("https://ff-ts-dev-ed.lightning.force.com/c/GoogleOAuthCompletion.app");
-			gDriveRequest.setEndpoint("https://www.googleapis.com/drive/v3/files");
-		
+			gDriveRequest = prepareDummyData();
 		}
 		GoogleDriveAuthResponse authResponse = getDriveDataWithRefreshToken(gDriveRequest);
-		GoogleDriveFilesResponse fileResponse = new GoogleDriveFilesResponse();
-    	if(authResponse != null){
-    		fileResponse = fetchFiles(authResponse, gDriveRequest);
-    	}
-		return fileResponse;
+		return fetchFiles(authResponse, gDriveRequest);
 	}
 	
-	public static GoogleDriveFilesResponse fetchFiles(GoogleDriveAuthResponse authResponse, GoogleDriveRequest gDriveRequest){
+	public static String fetchFiles(GoogleDriveAuthResponse authResponse, GoogleDriveRequest gDriveRequest){
 		String endpoint = gDriveRequest.getEndpoint();
 		HttpURLConnection connection = null;
 		System.out.println(authResponse.getAccess_token());
@@ -175,11 +175,8 @@ public class GoogleDriveService {
 		    	response.append(inputLine);
 		    }
 		    rd.close();
-		    //System.out.println(response.toString());		    
-		    Gson gson = new Gson();
-		    GoogleDriveFilesResponse gDriveResponseObj = gson.fromJson(response.toString(), GoogleDriveFilesResponse.class);
-		    System.out.println(gDriveResponseObj.getFiles().size());
-		    return gDriveResponseObj;
+		    System.out.println(response.toString());		    
+		    return response.toString();
 		}catch(Exception e){
 			e.printStackTrace();
 			return null;

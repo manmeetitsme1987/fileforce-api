@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import fileforce.Model.Request.GoogleDriveRequest;
-import fileforce.Model.Response.GoogleDriveFilesResponse;
 import fileforce.Service.GoogleDriveService;
 
 @RestController
@@ -18,12 +17,12 @@ public class GoogleDriveController {
     private GoogleDriveService gDriveService;
 	
 	@RequestMapping(value="/googleDriveData", method=RequestMethod.GET)
-	public @ResponseBody GoogleDriveFilesResponse getGoogleDriveDataGet() {
+	public @ResponseBody String getGoogleDriveDataGet() {
         return this.gDriveService.getGoogleDriveData(null); 
     }
 	
 	@RequestMapping(value="/googleDriveData", method=RequestMethod.POST)
-	public @ResponseBody GoogleDriveFilesResponse getGoogleDriveDataPost(@RequestBody GoogleDriveRequest gDriveRequest) {
+	public @ResponseBody String getGoogleDriveDataPost(@RequestBody GoogleDriveRequest gDriveRequest) {
         return this.gDriveService.getGoogleDriveData(gDriveRequest); 
     }
 }
