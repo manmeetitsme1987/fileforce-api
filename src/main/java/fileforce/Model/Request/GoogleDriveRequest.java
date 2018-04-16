@@ -8,6 +8,7 @@ public class GoogleDriveRequest {
 	private String clientRedirectURI;
 	private String endpoint;
 	
+	/*
 	public GoogleDriveRequest(String refresh_Token, String token_endpoint, String clientId, 
 								String clientSecret, String clientRedirectURI, String endpoint){
 		this.refresh_Token = refresh_Token;
@@ -17,7 +18,7 @@ public class GoogleDriveRequest {
 		this.clientRedirectURI = clientRedirectURI;
 		this.endpoint = endpoint;
 	}
-	
+	*/
 	public String getRefresh_Token() {
 		return refresh_Token;
 	}
