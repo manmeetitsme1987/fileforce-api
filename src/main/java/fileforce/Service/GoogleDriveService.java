@@ -139,20 +139,14 @@ public class GoogleDriveService {
 	public GoogleDriveFilesResponse getGoogleDriveData(GoogleDriveRequest gDriveRequest){
 		//if get request is being called for test purpose
 		if(gDriveRequest == null){
-			/*
-			String refreshToken = "1/rRLjhskgc93LO8FUivaMK-oY8P7pOe16wWS9EKy0pyih3kYil-qmONWxlWWhwqza";
-			String TOKEN_ENDPOINT = "https://www.googleapis.com/oauth2/v4/token";
-			String clientId = "619983446033-4d4i2ekkmfal2r29ngjegkc0t53qascs.apps.googleusercontent.com";
-			String clientSecret = "zDJjNrgtxiVqOuy_C8pajVVm";
-			String clientRedirectURI = "https://ff-ts-dev-ed.lightning.force.com/c/GoogleOAuthCompletion.app";
-			String endpoint = "https://www.googleapis.com/drive/v3/files";
-			gDriveRequest = new GoogleDriveRequest(refreshToken,
-													TOKEN_ENDPOINT,
-													clientId,
-													clientSecret,
-													clientRedirectURI,
-													endpoint); 
-		*/
+			gDriveRequest = new GoogleDriveRequest();
+			gDriveRequest.setRefresh_Token("1/rRLjhskgc93LO8FUivaMK-oY8P7pOe16wWS9EKy0pyih3kYil-qmONWxlWWhwqza");
+			gDriveRequest.setToken_endpoint("https://www.googleapis.com/oauth2/v4/token");
+			gDriveRequest.setClientId("619983446033-4d4i2ekkmfal2r29ngjegkc0t53qascs.apps.googleusercontent.com");
+			gDriveRequest.setClientSecret("zDJjNrgtxiVqOuy_C8pajVVm");
+			gDriveRequest.setClientRedirectURI("https://ff-ts-dev-ed.lightning.force.com/c/GoogleOAuthCompletion.app");
+			gDriveRequest.setEndpoint("https://www.googleapis.com/drive/v3/files");
+		
 		}
 		GoogleDriveAuthResponse authResponse = getDriveDataWithRefreshToken(gDriveRequest);
 		GoogleDriveFilesResponse fileResponse = new GoogleDriveFilesResponse();
