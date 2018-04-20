@@ -1,5 +1,7 @@
 package fileforce.Model.Request;
 
+import java.util.List;
+
 public class GoogleDriveRequest {
 	private String refresh_Token;
 	private String token_endpoint;
@@ -7,18 +9,14 @@ public class GoogleDriveRequest {
 	private String clientSecret;
 	private String clientRedirectURI;
 	private String endpoint;
+	private List<GoogleDriveFileRequest> files;
 	
-	/*
-	public GoogleDriveRequest(String refresh_Token, String token_endpoint, String clientId, 
-								String clientSecret, String clientRedirectURI, String endpoint){
-		this.refresh_Token = refresh_Token;
-		this.token_endpoint = token_endpoint;
-		this.clientId = clientId;
-		this.clientSecret = clientSecret;
-		this.clientRedirectURI = clientRedirectURI;
-		this.endpoint = endpoint;
+	public List<GoogleDriveFileRequest> getFiles() {
+		return files;
 	}
-	*/
+	public void setFiles(List<GoogleDriveFileRequest> files) {
+		this.files = files;
+	}
 	public String getRefresh_Token() {
 		return refresh_Token;
 	}
@@ -54,5 +52,24 @@ public class GoogleDriveRequest {
 	}
 	public void setEndpoint(String endpoint) {
 		this.endpoint = endpoint;
+	}
+	
+	public class GoogleDriveFileRequest{
+		private String mimeType;
+		private String platform_id;
+		
+		public String getMimeType() {
+			return mimeType;
+		}
+		public void setMimeType(String mimeType) {
+			this.mimeType = mimeType;
+		}
+		public String getPlatform_id() {
+			return platform_id;
+		}
+		public void setPlatform_id(String platform_id) {
+			this.platform_id = platform_id;
+		}
+		
 	}
 }

@@ -6,9 +6,17 @@ public class GoogleDriveFilesResponse {
 	private String kind;
 	private Boolean incompleteSearch;
     private List<GoogleFile> files;
+    private String nextPageToken;
     
-    
-    public String getKind() {
+    public String getNextPageToken() {
+		return nextPageToken;
+	}
+
+	public void setNextPageToken(String nextPageToken) {
+		this.nextPageToken = nextPageToken;
+	}
+
+	public String getKind() {
 		return kind;
 	}
 
