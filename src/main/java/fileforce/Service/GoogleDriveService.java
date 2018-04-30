@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -139,10 +140,12 @@ public class GoogleDriveService {
     	
     	//getIndividualFileData("1WdHzBAP7pwS0aahB-yOu0zU8ddfVXXDScjN_AIT6dBc");
     	//getTheFinalTextData();
-    	//GoogleDriveService obj = new GoogleDriveService();
     	//URL url = obj.getClass().getResource("/static/demodocx.docx");
     	//System.out.println(url.getPath());
-    	//SelfParserUtility.readPDFFile("/Manmeet/Spring Boot/fileforce-api/src/main/resources/static/demopdf2.pdf");
+    	//SelfParserUtility.readPDFFile("/Manmeet/Spring Boot/fileforce-api/src/main/resources/static/demopdf2.pdf");*/
+    	
+    	/*
+    	GoogleDriveService obj = new GoogleDriveService();
     	GoogleDriveRequest gDriveRequest = new GoogleDriveRequest();
 		gDriveRequest.setRefresh_Token("1/KuWjejdKhpbisf_cRRvJ-bUu35v_JgLiTxePAD4X1oI");
 		gDriveRequest.setToken_endpoint("https://www.googleapis.com/oauth2/v4/token");
@@ -155,20 +158,20 @@ public class GoogleDriveService {
 		GoogleDriveRequest.GoogleDriveFileRequest tempObj = gDriveRequest.new GoogleDriveFileRequest();
 		//image
 		tempObj.setPlatform_id("1rJb5YWXZp6NPtB-EUANwrHc5b94TjGfU");
-		//listFileObj.add(tempObj);
+		listFileObj.add(tempObj);
 		
 		tempObj = gDriveRequest.new GoogleDriveFileRequest();
 		tempObj.setPlatform_id("1WdHzBAP7pwS0aahB-yOu0zU8ddfVXXDScjN_AIT6dBc");
-		//listFileObj.add(tempObj);
+		listFileObj.add(tempObj);
 		
 		tempObj = gDriveRequest.new GoogleDriveFileRequest();
 		tempObj.setPlatform_id("1s5u-Sdq9-i-7h9OAP6fCZ2IybPSRL87n");
-		//listFileObj.add(tempObj);
+		listFileObj.add(tempObj);
 		
 		//xlsx
 		tempObj = gDriveRequest.new GoogleDriveFileRequest();
 		tempObj.setPlatform_id("1jTVywFwB2BoVSRgGeAoPKOpUyP_3F3K6K6NHOCFPdw8");
-		//listFileObj.add(tempObj);
+		listFileObj.add(tempObj);
 		
 		//pdf
 		tempObj = gDriveRequest.new GoogleDriveFileRequest();
@@ -176,11 +179,11 @@ public class GoogleDriveService {
 		listFileObj.add(tempObj);
 		
 		gDriveRequest.setFiles(listFileObj);
-    	parsefiles(gDriveRequest);
+		obj.parsefiles(gDriveRequest);
     	
+    	*/
     	
-    	GoogleDriveService obj = new GoogleDriveService();
-    	obj.getGoogleDriveData(null);*/
+    	//obj.getGoogleDriveData(null);
     //}
 	
     public static GoogleDriveRequest prepareDummyData(){
@@ -318,7 +321,10 @@ public class GoogleDriveService {
 				getIndividualFileData(fileRequest, gDriveRequest, gDriveResponseObj, mapPlatformIdBody);
 			}
 		}
-		System.out.println(mapPlatformIdBody.size() + "=== Size of Map");
+		//System.out.println(mapPlatformIdBody.keySet().toString() + "=== Size of Map");
+		Gson gson = new Gson(); 
+		String json = gson.toJson(mapPlatformIdBody);
+		System.out.println(json + "=== converted JSON");
 		//System.out.println(mapPlatformIdBody.get("1jTVywFwB2BoVSRgGeAoPKOpUyP_3F3K6K6NHOCFPdw8"));
 		return null;
 	}
@@ -379,7 +385,7 @@ public class GoogleDriveService {
 							mapPlatformIdBody);
 		    	}
 		    }
-		    System.out.println(response.toString());		    
+		    //System.out.println(response.toString());		    
 		    //return response.toString();
 		}catch(Exception e){
 			e.printStackTrace();
@@ -406,11 +412,11 @@ public class GoogleDriveService {
 		    String inputLine;
 		    while ((inputLine = rd.readLine()) != null) {
 		    	response.append(inputLine);
-		    	response.append("\n");
+		    	//response.append("\n");
 		    }
 		    rd.close();
 		    mapPlatformIdBody.put(gDriveFileResponseObj.getId(), response.toString());
-		    System.out.println(response.toString());		    
+		    //System.out.println(response.toString());		    
 		    
 		    //return response.toString();
 		}catch(Exception e){

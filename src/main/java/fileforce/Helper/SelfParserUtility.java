@@ -45,9 +45,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import fileforce.Model.Response.GoogleDriveFileResponse;
-
-
 public class SelfParserUtility {
 	
 	
@@ -66,7 +63,7 @@ public class SelfParserUtility {
 			pdfStripper = new PDFTextStripper();
 			pdDoc = new PDDocument(cosDoc);
 			pdfStripper.setStartPage(1);
-			pdfStripper.setEndPage(5);
+			pdfStripper.setEndPage(pdfStripper.getEndPage());
 			parsedText = pdfStripper.getText(pdDoc);
 		} catch (Exception e) {
 			System.err
