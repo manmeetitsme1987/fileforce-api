@@ -1,0 +1,11 @@
+subprojects {
+  apply plugin: 'findbugs'
+  findbugs {
+      ignoreFailures = true
+  }
+
+  apply plugin: 'pmd'
+  pmd {
+      ignoreFailures = true
+  }
+}

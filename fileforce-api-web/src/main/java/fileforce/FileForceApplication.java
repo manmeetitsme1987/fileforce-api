@@ -18,7 +18,6 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -32,7 +31,6 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import fileforce.Configuration.BigOperationWorker;
 import fileforce.Configuration.TomcatPoolDataSourceProperties;
 
 
@@ -141,12 +139,6 @@ public class FileForceApplication {
         return new Queue(this.helloWorldQueueName);
     }
     
-    @Bean
-    MessageListenerAdapter testListenerAdapter(BigOperationWorker testReceiver) {
-        return new MessageListenerAdapter(testReceiver);
-    }
-    
-
     private static String getEnvOrThrow(String name) {
         String env = getenv(name);
         if (env == null) {

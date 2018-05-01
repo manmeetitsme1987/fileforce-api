@@ -1,2 +1,2 @@
-include 'fileforce-api'
+include 'fileforce-api-web'
 include 'fileforce-api-worker'
