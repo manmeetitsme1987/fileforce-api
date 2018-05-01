@@ -1,2 +1,3 @@
 include 'fileforce-api-web'
 include 'fileforce-api-worker'
+include 'fileforce-api-workersh'

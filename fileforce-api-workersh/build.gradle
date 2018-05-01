@@ -1,0 +1,15 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+repositories {
+	mavenCentral()
+}
+
+mainClassName = 'fileforce.Controller.AsyncProcessWorker'
+
+dependencies {
+	compile project(':fileforce-api-web')
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+	testCompile("junit:junit")
+}
+

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import fileforce.FileForceApplication;
+import fileforce.Configuration.RabbitConfiguration;
 import fileforce.Model.Request.GoogleDriveRequest;
 import fileforce.Model.Response.GoogleDriveFilesResponse;
 import fileforce.Service.GoogleDriveService;
@@ -43,7 +43,7 @@ public class GoogleDriveController {
     	// Receives the bigOp from the form submission, converts to a message, and sends to RabbitMQ.
     	try{
     	String bigOp = "Test";
-    	ApplicationContext context = new AnnotationConfigApplicationContext(FileForceApplication.class);
+    	ApplicationContext context = new AnnotationConfigApplicationContext(RabbitConfiguration.class);
     	AmqpTemplate amqpTemplate = context.getBean(AmqpTemplate.class);
     	System.out.println(amqpTemplate + "====" + rabbitQueue.getName());
     	amqpTemplate.convertAndSend(rabbitQueue.getName(), bigOp);
@@ -52,6 +52,7 @@ public class GoogleDriveController {
         // Send the bigOp back to the confirmation page for displaying details in view
     	}catch(Exception e){
     		System.out.println("Error ====" + e.getStackTrace());
+    		System.out.println("Error ====" + e.getMessage());
     	}
         return "bigOpReceivedConfirmation"; 
     }
