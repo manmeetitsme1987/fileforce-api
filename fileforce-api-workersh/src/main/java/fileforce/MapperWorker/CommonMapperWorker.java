@@ -1,4 +1,4 @@
-package fileforce.Mapper;
+package fileforce.MapperWorker;
 
 import java.util.List;
 

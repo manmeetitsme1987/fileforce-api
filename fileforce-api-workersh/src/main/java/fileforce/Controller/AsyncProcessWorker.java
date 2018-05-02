@@ -16,7 +16,7 @@ import org.springframework.util.ErrorHandler;
 
 import fileforce.Configuration.RabbitConfiguration;
 import fileforce.Helper.ParserUtils;
-import fileforce.Mapper.CommonMapperWorker;
+import fileforce.MapperWorker.CommonMapperWorker;
 import fileforce.Model.Request.CommonIndexRequest;
 import fileforce.Model.Request.GoogleDriveRequestWorker;
 import fileforce.Model.Response.MasterTableResponseWorker;

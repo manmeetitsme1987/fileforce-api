@@ -28,7 +28,7 @@ import fileforce.Controller.AsyncProcessWorker;
 @Configuration
 @EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class )
 @EnableConfigurationProperties(TomcatPoolDataSourcePropertiesWorker.class)
-@MapperScan("fileforce.Mapper")
+@MapperScan("fileforce.MapperWorker")
 @Controller
 @SpringBootApplication
 public class FileForceApplicationWorker {
