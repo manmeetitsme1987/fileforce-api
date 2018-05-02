@@ -25,8 +25,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import fileforce.Configuration.TomcatPoolDataSourceProperties;
 
 
-
-
 @Configuration
 @EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class )
 @EnableConfigurationProperties(TomcatPoolDataSourceProperties.class)

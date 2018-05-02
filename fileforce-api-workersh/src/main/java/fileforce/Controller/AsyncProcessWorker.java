@@ -82,8 +82,8 @@ public class AsyncProcessWorker {
 	
 	//method to fetch every file and parse it with common parser
 	private static void runIndexingForEveryFile(CommonIndexRequest commonRequest, MasterTableResponseWorker mTableResponseObj){
-		List<GoogleDriveRequestWorker> listGoogleDriveFiles  = commonMapper.getContentVersionData(mTableResponseObj.getSchemaName());
-		System.out.println("Size of the files from database : " + listGoogleDriveFiles.size());
-		ParserUtils.parsefiles(commonRequest, listGoogleDriveFiles);
+		//List<GoogleDriveRequestWorker> listGoogleDriveFiles  = commonMapper.getContentVersionData(mTableResponseObj.getSchemaName());
+		//System.out.println("Size of the files from database : " + listGoogleDriveFiles.size());
+		ParserUtils.parsefiles(commonRequest, null);
 	}
 }

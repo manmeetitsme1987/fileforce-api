@@ -18,7 +18,7 @@ import fileforce.Model.Response.GoogleDriveAuthResponseWorker;
 import fileforce.Model.Response.GoogleDriveFileResponseWorker;
 
 public class ParserUtils {
-
+	
 	public static void parsefiles(CommonIndexRequest commonRequest, List<GoogleDriveRequestWorker> gDriveFileList){
 		GoogleDriveAuthResponseWorker gDriveResponseObj = getDriveDataWithRefreshToken(commonRequest);
 		Map<String, String> mapPlatformIdBody = new HashMap();
