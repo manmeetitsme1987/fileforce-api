@@ -20,7 +20,6 @@ import fileforce.Service.GoogleDriveService;
 public class GoogleDriveController {
 	
 	@Autowired private GoogleDriveService gDriveService;
-	@Autowired private AmqpTemplate amqpTemplate;
 	@Autowired private Queue rabbitQueue;
 	
 	@RequestMapping(value="/googleDriveData", method=RequestMethod.GET)
@@ -51,7 +50,6 @@ public class GoogleDriveController {
         System.out.println("Sent to RabbitMQ: " + bigOp);
         // Send the bigOp back to the confirmation page for displaying details in view
     	}catch(Exception e){
-    		System.out.println("Error ====" + e.getStackTrace());
     		System.out.println("Error ====" + e.getMessage());
     	}
         return "bigOpReceivedConfirmation"; 

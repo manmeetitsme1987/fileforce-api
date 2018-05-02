@@ -23,9 +23,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import fileforce.Configuration.TomcatPoolDataSourceProperties;
-
-
-
+import fileforce.Controller.AsyncProcessWorker;
 
 @Configuration
 @EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class )
@@ -33,7 +31,7 @@ import fileforce.Configuration.TomcatPoolDataSourceProperties;
 @MapperScan("fileforce.Mapper")
 @Controller
 @SpringBootApplication
-public class FileForceApplication {
+public class FileForceApplicationWorker {
 	
 	@Autowired
 	private TomcatPoolDataSourceProperties tomcatPoolDataSourceProperties;
@@ -88,7 +86,12 @@ public class FileForceApplication {
 		return new DataSourceTransactionManager(dataSource());
 	}
 	
+	@Bean
+	public void createIndexJobListener() {
+		AsyncProcessWorker.createIndexJobListener();
+	}
+	
 	public static void main(String[] args) {
-		SpringApplication.run(FileForceApplication.class, args);
+		SpringApplication.run(FileForceApplicationWorker.class, args);
 	}
 }

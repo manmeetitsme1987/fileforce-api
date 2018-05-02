@@ -7,11 +7,26 @@
     	<result property="name" jdbcType="VARCHAR" column="userName" />
 	</resultMap>
 	
+	<resultMap id="masterDetail" type="fileforce.Model.Response.MasterTableResponse">
+  		<id property="orgId" jdbcType="VARCHAR" column="orgId"/>
+    	<result property="schemaName" jdbcType="VARCHAR" column="schemaName" />
+	</resultMap>
+	
 	
 	<select id="getUserInfoById" parameterType="int" resultMap="userDetail">
 			select 
 		    b.id as "userId",
 		    b.name as "userName"
 		    from UserInfo b  where b.id = #{id} 
-	  	</select>
+	</select>
+	
+	
+	<select id="getMasterData" parameterType="String" resultMap="masterDetail">
+			select 
+		    b.org_id as "orgId",
+		    b.schema_val as "schemaName" 
+		    from master_table b  where b.org_id = #{orgId} 
+	</select>
+	
+	
   	</mapper>

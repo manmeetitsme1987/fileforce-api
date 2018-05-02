@@ -17,7 +17,7 @@ import static java.lang.System.getenv;
 @Configuration
 public class RabbitConfiguration {
 
-    protected final String helloWorldQueueName = "hello.world.queue";
+    protected final String priorityQueueName = "priority.queue";
 
     @Bean
     public ConnectionFactory connectionFactory() {
@@ -48,14 +48,14 @@ public class RabbitConfiguration {
     @Bean
     public RabbitTemplate rabbitTemplate() {
         RabbitTemplate template = new RabbitTemplate(connectionFactory());
-        template.setRoutingKey(this.helloWorldQueueName);
-        template.setQueue(this.helloWorldQueueName);
+        template.setRoutingKey(this.priorityQueueName);
+        template.setQueue(this.priorityQueueName);
         return template;
     }
 
     @Bean
     public Queue queue() {
-        return new Queue(this.helloWorldQueueName);
+        return new Queue(this.priorityQueueName);
     }
 
     private static String getEnvOrThrow(String name) {

@@ -4,7 +4,7 @@ repositories {
 	mavenCentral()
 }
 
-mainClassName = 'fileforce.Controller.AsyncProcessWorker'
+//mainClassName = 'fileforce.Controller.AsyncProcessWorker'
 
 dependencies {
 	compile project(':fileforce-api-web')
