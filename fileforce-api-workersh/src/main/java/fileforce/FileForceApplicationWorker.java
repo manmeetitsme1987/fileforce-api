@@ -22,24 +22,24 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import fileforce.Configuration.TomcatPoolDataSourceProperties;
+import fileforce.Configuration.TomcatPoolDataSourcePropertiesWorker;
 import fileforce.Controller.AsyncProcessWorker;
 
 @Configuration
 @EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class )
-@EnableConfigurationProperties(TomcatPoolDataSourceProperties.class)
+@EnableConfigurationProperties(TomcatPoolDataSourcePropertiesWorker.class)
 @MapperScan("fileforce.Mapper")
 @Controller
 @SpringBootApplication
 public class FileForceApplicationWorker {
 	
 	@Autowired
-	private TomcatPoolDataSourceProperties tomcatPoolDataSourceProperties;
+	private TomcatPoolDataSourcePropertiesWorker tomcatPoolDataSourceProperties;
 	private org.apache.tomcat.jdbc.pool.DataSource pool;
 	
 	@Bean(destroyMethod = "close")
 	public DataSource dataSource() {
-		TomcatPoolDataSourceProperties config = tomcatPoolDataSourceProperties;
+		TomcatPoolDataSourcePropertiesWorker config = tomcatPoolDataSourceProperties;
 		this.pool = new org.apache.tomcat.jdbc.pool.DataSource();
 		this.pool.setDriverClassName(config.getDriverClassName());
 		this.pool.setUrl(config.getUrl());
