@@ -58,7 +58,9 @@ public class AsyncProcessWorker {
         // set a simple error handler
         listenerContainer.setErrorHandler(new ErrorHandler() {
             public void handleError(Throwable t) {
-                t.printStackTrace();
+            	System.out.println("In Error Handler == " + t.getMessage());
+            	t.printStackTrace();
+                listenerContainer.stop();
             }
         });
 

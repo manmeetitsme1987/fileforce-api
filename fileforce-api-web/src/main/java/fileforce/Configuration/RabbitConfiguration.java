@@ -58,7 +58,7 @@ public class RabbitConfiguration {
     private static String getEnvOrThrow(String name) {
         String env = getenv(name);
         if (env == null) {
-            env = "amqp://aeboocyo:LWMtQcgSCwincDxmBGfbQ3u82QyRfs__@skunk.rmq.cloudamqp.com/aeboocyo";
+            env = "amqp://rustsdzl:MNrAhX1xiqABPN8OLKmQVzMK_I0Y5lqh@skunk.rmq.cloudamqp.com/rustsdzl";
         	//throw new IllegalStateException("Environment variable [" + name + "] is not set.");
         }
         return env;
