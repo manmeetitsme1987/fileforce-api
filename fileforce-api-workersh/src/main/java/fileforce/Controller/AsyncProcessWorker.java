@@ -44,9 +44,10 @@ public class AsyncProcessWorker {
         // set the callback for message handling
         listenerContainer.setMessageListener(new MessageListener() {
             public void onMessage(Message message) {
-                final CommonIndexRequest commonRequest = (CommonIndexRequest) messageConverter.fromMessage(message);
+                final String commonRequest = (String) messageConverter.fromMessage(message);
                 // simply printing out the operation, but expensive computation could happen here
                 System.out.println("Received from RabbitMQ: " + commonRequest);
+                /*
                 if(commonRequest.getPlatform() != null && commonRequest.getPlatform().getPlatformName().equalsIgnoreCase(GOOGLE_DRIVE)){
         			MasterTableResponseWorker mTableResponseObj = commonMapper.getMasterData(commonRequest.getSalesforce().getOrgId());
         			System.out.println("Received from RabbitMQ Schema Name : " + mTableResponseObj.getSchemaName());
@@ -54,7 +55,7 @@ public class AsyncProcessWorker {
         				runIndexingForEveryFile(commonRequest, mTableResponseObj);
         			}
         		}
-                
+                */
             }
         });
 
