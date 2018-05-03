@@ -1,7 +1,5 @@
 package fileforce.Controller;
 
-import java.util.List;
-
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.Queue;
@@ -9,25 +7,22 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.util.ErrorHandler;
 
 import fileforce.Configuration.RabbitConfiguration;
 import fileforce.Helper.ParserUtils;
-import fileforce.MapperWorker.CommonMapperWorker;
 import fileforce.Model.Request.CommonIndexRequest;
-import fileforce.Model.Request.GoogleDriveRequestWorker;
 import fileforce.Model.Response.MasterTableResponseWorker;
 
 public class AsyncProcessWorker {
-	@Autowired private static CommonMapperWorker commonMapper;
+	//@Autowired private static CommonMapperWorker commonMapper;
 	public static final String GOOGLE_DRIVE = "GoogleDrive";
 	
-	//public static void main(String[] args) {
-		//createIndexJobListener();
-    //}
+	public static void main(String[] args) {
+		createIndexJobListener();
+    }
 	
 	public static void createIndexJobListener(){
 		final ApplicationContext rabbitConfig = new AnnotationConfigApplicationContext(RabbitConfiguration.class);
@@ -40,11 +35,12 @@ public class AsyncProcessWorker {
         final SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer();
         listenerContainer.setConnectionFactory(rabbitConnectionFactory);
         listenerContainer.setQueueNames(rabbitQueue.getName());
+        System.out.println("rabbitQueue.getName()   : " + rabbitQueue.getName());
 
         // set the callback for message handling
         listenerContainer.setMessageListener(new MessageListener() {
             public void onMessage(Message message) {
-                final String commonRequest = (String) messageConverter.fromMessage(message);
+                final CommonIndexRequest commonRequest = (CommonIndexRequest) messageConverter.fromMessage(message);
                 // simply printing out the operation, but expensive computation could happen here
                 System.out.println("Received from RabbitMQ: " + commonRequest);
                 /*

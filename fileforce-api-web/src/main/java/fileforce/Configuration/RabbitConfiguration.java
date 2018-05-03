@@ -34,9 +34,6 @@ public class RabbitConfiguration {
         factory.setHost(ampqUrl.getHost());
         factory.setPort(ampqUrl.getPort());
         factory.setVirtualHost(ampqUrl.getPath().substring(1));
-        
-        System.out.println(ampqUrl.getUserInfo().split(":")[0] + "=====Username");
-        System.out.println(ampqUrl.getUserInfo().split(":")[1] + "=====Password");
         return factory;
     }
 
@@ -61,7 +58,7 @@ public class RabbitConfiguration {
     private static String getEnvOrThrow(String name) {
         String env = getenv(name);
         if (env == null) {
-            env = "amqp://iaxlxurw:ZYEtbFikacPOQ0qbi1iSmFwj9H6uKJ0c@eagle.rmq.cloudamqp.com/iaxlxurw";
+            env = "amqp://uxyevbpn:sSkx1qerQTt4DwxNGoTyd0rciGYJpjCj@skunk.rmq.cloudamqp.com/uxyevbpn";
         	//throw new IllegalStateException("Environment variable [" + name + "] is not set.");
         }
         return env;
