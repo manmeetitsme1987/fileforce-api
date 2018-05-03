@@ -29,7 +29,7 @@ public class CommonService {
 	    	ApplicationContext context = new AnnotationConfigApplicationContext(RabbitConfiguration.class);
 	    	AmqpTemplate amqpTemplate = context.getBean(AmqpTemplate.class);
 	    	System.out.println(amqpTemplate + "====" + rabbitQueue.getName());
-	    	amqpTemplate.convertAndSend(rabbitQueue.getName(), "Test");
+	    	amqpTemplate.convertAndSend(rabbitQueue.getName(), commonRequest);
 	    	
 	        System.out.println("Sent to RabbitMQ: " + commonRequest);
 	        // Send the bigOp back to the confirmation page for displaying details in view
