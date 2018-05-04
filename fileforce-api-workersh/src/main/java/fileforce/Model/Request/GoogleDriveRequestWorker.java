@@ -3,6 +3,13 @@ package fileforce.Model.Request;
 
 public class GoogleDriveRequestWorker {
 		private String id;
+		private String externalId;
+		private String fileExtension;
+		private String fileType;
+		private String firstPublicationId;
+		private String title;
+		private String contentDocumentId;
+		
 		public String getId() {
 			return id;
 		}
@@ -45,11 +52,5 @@ public class GoogleDriveRequestWorker {
 		public void setContentDocumentId(String contentDocumentId) {
 			this.contentDocumentId = contentDocumentId;
 		}
-		private String externalId;
-		private String fileExtension;
-		private String fileType;
-		private String firstPublicationId;
-		private String title;
-		private String contentDocumentId;
 
 }

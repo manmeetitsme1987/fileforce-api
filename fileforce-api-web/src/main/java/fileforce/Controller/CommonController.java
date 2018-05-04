@@ -28,7 +28,6 @@ public class CommonController {
         return this.commonService.getMasterTableDataByOrgId(orgId);
     }
 	
-	
 	@RequestMapping(value="/indexjob/new", method=RequestMethod.POST)
 	public @ResponseBody ResponseEntity<IndexJobResponse> runIndexJob(@RequestBody CommonIndexRequest commonRequest) {
 		commonService.runIndexRequest(commonRequest);

@@ -12,3 +12,4 @@ out
 .DS_Store
 npm-debug.log
 .temp
+.env

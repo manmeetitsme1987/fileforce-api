@@ -8,9 +8,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -51,8 +53,9 @@ public class SelfParserUtilityWorker {
 	
 	public static void readPDFFile(String url, String fileId, Map<String, String> mapPlatformIdBody){
 		// Create a PdfDocument instance
+		Set<String> tokens = new HashSet<String>();
 		PDFParser parser;
-		String parsedText = null;;
+		String parsedText = "";
 		PDFTextStripper pdfStripper = null;
 		PDDocument pdDoc = null;
 		COSDocument cosDoc = null;
@@ -66,6 +69,7 @@ public class SelfParserUtilityWorker {
 			pdfStripper.setStartPage(1);
 			pdfStripper.setEndPage(pdfStripper.getEndPage());
 			parsedText = pdfStripper.getText(pdDoc);
+			
 		} catch (Exception e) {
 			System.err
 					.println("An exception occured in parsing the PDF Document."
@@ -80,8 +84,16 @@ public class SelfParserUtilityWorker {
 				e.printStackTrace();
 			}
 		}
-		mapPlatformIdBody.put(fileId, parsedText);
-		//System.out.println("parsed file :===    " + parsedText);
+		for(String str : parsedText.split(" ")){
+			tokens.add(str);
+		}
+		
+		//now making the string again
+		StringBuilder response = new StringBuilder();
+		for(String value : tokens){
+	    	response.append(value + " ");
+	    }
+		mapPlatformIdBody.put(fileId, response.toString());
 	}
 	
 	public static void readXLSFile(String url, Map<String, String> mapPlatformIdBody){
@@ -114,10 +126,9 @@ public class SelfParserUtilityWorker {
 	
 	public static void readXLSXFile(String url, String fileId, Map<String, String> mapPlatformIdBody){
 		try { 
-			//File excel = new File(fileName); 
-			//FileInputStream fis = new FileInputStream(excel); 
 			InputStream fis = new URL(url).openStream();
-			XSSFWorkbook book = new XSSFWorkbook(fis); 
+			XSSFWorkbook book = new XSSFWorkbook(fis);
+			Set<String> tokens = new HashSet<String>();
 			StringBuilder response = new StringBuilder();
 			for(int i=0; i < book.getNumberOfSheets(); i++){
 				XSSFSheet sheet = book.getSheetAt(i); 
@@ -132,23 +143,29 @@ public class SelfParserUtilityWorker {
 						Cell cell = cellIterator.next(); 
 							switch (cell.getCellType()) {
 								case Cell.CELL_TYPE_STRING: 
-									response.append(cell.getStringCellValue() + "\t");
+									tokens.add(cell.getStringCellValue());
+									//response.append(cell.getStringCellValue() + "\t");
 									//System.out.print(cell.getStringCellValue() + "\t"); 
 								break; 
-								case Cell.CELL_TYPE_NUMERIC: 
-									response.append(cell.getNumericCellValue() + "\t");
+								case Cell.CELL_TYPE_NUMERIC:
+									tokens.add(String.valueOf(cell.getNumericCellValue()));
+									//response.append(cell.getNumericCellValue() + "\t");
 									//System.out.print(cell.getNumericCellValue() + "\t"); 
 								break; 
 								case Cell.CELL_TYPE_BOOLEAN: 
-									response.append(cell.getBooleanCellValue() + "\t");
+									tokens.add(String.valueOf(cell.getBooleanCellValue()));
+									//response.append(cell.getBooleanCellValue() + "\t");
 									//System.out.print(cell.getBooleanCellValue() + "\t"); 
 								break; default: 
 							} 
 					} 
 				//System.out.println("");
-				response.append("\r");
+				//response.append("\r");
 				}
 			}
+			for(String value : tokens){
+		    	response.append(value + " ");
+		    }
 			mapPlatformIdBody.put(fileId, response.toString());
 		}catch (Exception e) {
 			e.printStackTrace();

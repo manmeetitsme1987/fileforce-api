@@ -1,8 +1,9 @@
-
+apply plugin: 'java'
 repositories {
 	mavenCentral()
 }
 
+//mainClassName = 'fileforce.Controller.AsyncProcessWorker'
 dependencies {
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 	testCompile("junit:junit")

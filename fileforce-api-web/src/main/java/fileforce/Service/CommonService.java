@@ -7,6 +7,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Service;
 
+import com.google.gson.Gson;
+
 import fileforce.Configuration.RabbitConfiguration;
 import fileforce.Mapper.CommonMapper;
 import fileforce.Model.Request.CommonIndexRequest;
@@ -29,10 +31,11 @@ public class CommonService {
 	    	ApplicationContext context = new AnnotationConfigApplicationContext(RabbitConfiguration.class);
 	    	AmqpTemplate amqpTemplate = context.getBean(AmqpTemplate.class);
 	    	System.out.println(amqpTemplate + "====" + rabbitQueue.getName());
-	    	amqpTemplate.convertAndSend(rabbitQueue.getName(), commonRequest);
-	    	
-	        System.out.println("Sent to RabbitMQ: " + commonRequest);
-	        // Send the bigOp back to the confirmation page for displaying details in view
+	    	Gson gson = new Gson(); 
+			String json = gson.toJson(commonRequest);
+			System.out.println("Sent to RabbitMQ: " + json);
+			amqpTemplate.convertAndSend(json);
+	    	// Send the bigOp back to the confirmation page for displaying details in view
 	    	}catch(Exception e){
 	    		System.out.println("Error ====" + e.getStackTrace());
 	    		System.out.println("Error ====" + e.getMessage());

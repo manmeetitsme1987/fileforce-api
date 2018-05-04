@@ -1,5 +1,7 @@
 package fileforce.Controller;
 
+import java.util.List;
+
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.Queue;
@@ -9,19 +11,29 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ErrorHandler;
 
+import com.google.gson.Gson;
+
+import fileforce.Configuration.AppConfig;
 import fileforce.Configuration.RabbitConfiguration;
 import fileforce.Helper.ParserUtils;
+import fileforce.MapperWorker.CommonMapperWorker;
 import fileforce.Model.Request.CommonIndexRequest;
+import fileforce.Model.Request.GoogleDriveRequestWorker;
 import fileforce.Model.Response.MasterTableResponseWorker;
 
+@Configuration
 public class AsyncProcessWorker {
-	//@Autowired private static CommonMapperWorker commonMapper;
 	public static final String GOOGLE_DRIVE = "GoogleDrive";
+	public static final AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
 	
 	public static void main(String[] args) {
-		createIndexJobListener();
+	    ctx.register(AppConfig.class);
+	    ctx.refresh();
+	    //AsyncProcessWorker classObj =  new AsyncProcessWorker();
+	    AsyncProcessWorker.createIndexJobListener();
     }
 	
 	public static void createIndexJobListener(){
@@ -35,23 +47,26 @@ public class AsyncProcessWorker {
         final SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer();
         listenerContainer.setConnectionFactory(rabbitConnectionFactory);
         listenerContainer.setQueueNames(rabbitQueue.getName());
-        System.out.println("rabbitQueue.getName()   : " + rabbitQueue.getName());
-
+        
+        CommonMapperWorker mapper = ctx.getBean(CommonMapperWorker.class);
+        
         // set the callback for message handling
         listenerContainer.setMessageListener(new MessageListener() {
             public void onMessage(Message message) {
-                final CommonIndexRequest commonRequest = (CommonIndexRequest) messageConverter.fromMessage(message);
+            	final String str = (String) messageConverter.fromMessage(message);
+            	System.out.println("Received from RabbitMQ: " + str);
+            	Gson gson = new Gson(); 
+            	final CommonIndexRequest commonRequest = gson.fromJson(str, CommonIndexRequest.class);
                 // simply printing out the operation, but expensive computation could happen here
-                System.out.println("Received from RabbitMQ: " + commonRequest);
-                /*
-                if(commonRequest.getPlatform() != null && commonRequest.getPlatform().getPlatformName().equalsIgnoreCase(GOOGLE_DRIVE)){
-        			MasterTableResponseWorker mTableResponseObj = commonMapper.getMasterData(commonRequest.getSalesforce().getOrgId());
+                
+            	if(commonRequest.getPlatform() != null && commonRequest.getPlatform().getPlatformName().equalsIgnoreCase(GOOGLE_DRIVE)){
+            		//System.out.println("Test Debug : " + commonRequest.getSalesforce().getOrgId() + "===" + commonMapper + "====" + commonMapper2);
+            		MasterTableResponseWorker mTableResponseObj = mapper.getMasterData(commonRequest.getSalesforce().getOrgId());
         			System.out.println("Received from RabbitMQ Schema Name : " + mTableResponseObj.getSchemaName());
         			if(mTableResponseObj.getSchemaName() != null){
-        				runIndexingForEveryFile(commonRequest, mTableResponseObj);
+        				runIndexingForEveryFile(commonRequest, mTableResponseObj, mapper);
         			}
         		}
-                */
             }
         });
 
@@ -60,7 +75,6 @@ public class AsyncProcessWorker {
             public void handleError(Throwable t) {
             	System.out.println("In Error Handler == " + t.getMessage());
             	t.printStackTrace();
-                listenerContainer.stop();
             }
         });
 
@@ -80,9 +94,13 @@ public class AsyncProcessWorker {
 	
 	
 	//method to fetch every file and parse it with common parser
-	private static void runIndexingForEveryFile(CommonIndexRequest commonRequest, MasterTableResponseWorker mTableResponseObj){
-		//List<GoogleDriveRequestWorker> listGoogleDriveFiles  = commonMapper.getContentVersionData(mTableResponseObj.getSchemaName());
-		//System.out.println("Size of the files from database : " + listGoogleDriveFiles.size());
-		ParserUtils.parsefiles(commonRequest, null);
+	private static void runIndexingForEveryFile(CommonIndexRequest commonRequest, 
+											MasterTableResponseWorker mTableResponseObj,
+											CommonMapperWorker mapper){
+		List<GoogleDriveRequestWorker> listGoogleDriveFiles  = mapper.getContentVersionData(mTableResponseObj.getSchemaName());
+		System.out.println("Size of the files from database : " + listGoogleDriveFiles.size());
+		if(listGoogleDriveFiles.size() > 0){
+			ParserUtils.parsefiles(commonRequest, listGoogleDriveFiles);
+		}
 	}
 }

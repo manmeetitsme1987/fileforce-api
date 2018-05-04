@@ -6,9 +6,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import org.springframework.util.StringUtils;
 
 import com.google.gson.Gson;
 
@@ -23,13 +28,19 @@ public class ParserUtils {
 		GoogleDriveAuthResponseWorker gDriveResponseObj = getDriveDataWithRefreshToken(commonRequest);
 		Map<String, String> mapPlatformIdBody = new HashMap();
 		if(gDriveResponseObj.getAccess_token() != null){
+			Integer countRecords = 1;
 			for(GoogleDriveRequestWorker fileRequest : gDriveFileList){
-				getIndividualFileData(fileRequest, commonRequest, gDriveResponseObj, mapPlatformIdBody);
+				if(!fileRequest.getExternalId().isEmpty()){
+					System.out.println("Processing =========" + countRecords + "=== file Name ====" + fileRequest.getTitle());
+					getIndividualFileData(fileRequest, commonRequest, gDriveResponseObj, mapPlatformIdBody);
+					countRecords++;
+					//break;
+				}
 			}
 		}
 		Gson gson = new Gson(); 
 		String json = gson.toJson(mapPlatformIdBody);
-		System.out.println(json + "=== converted JSON");
+		System.out.println("converted JSON=========" + json + "=== converted JSON");
 	}
 	
 	//method to get the access token
@@ -87,7 +98,8 @@ public class ParserUtils {
 												Map<String, String> mapPlatformIdBody){
 			HttpURLConnection connection = null;
 			try{
-				URL url = new URL(commonIndexRequest.getPlatform().getEndpoint() + "/" + fileRequest.getExternalId());
+				//URL url = new URL(commonIndexRequest.getPlatform().getEndpoint() + "/" + fileRequest.getExternalId());
+				URL url = new URL(commonIndexRequest.getPlatform().getEndpoint() + "/1jTVywFwB2BoVSRgGeAoPKOpUyP_3F3K6K6NHOCFPdw8");
 				connection = (HttpURLConnection) url.openConnection();
 				connection.setRequestMethod("GET");
 				connection.setRequestProperty("Authorization", "Bearer " + gDriveResponseObj.getAccess_token());
@@ -137,8 +149,6 @@ public class ParserUtils {
 													mapPlatformIdBody);
 				}
 				}
-				//System.out.println(response.toString());		    
-				//return response.toString();
 			}catch(Exception e){
 				e.printStackTrace();
 			}finally{
@@ -150,9 +160,9 @@ public class ParserUtils {
 	
 	
 	private static void getTheFinalTextData(GoogleDriveFileResponseWorker gDriveFileResponseObj, Map<String, String> mapPlatformIdBody){
-		//String endpoint = "https://docs.google.com/feeds/download/documents/export/Export?id=1WdHzBAP7pwS0aahB-yOu0zU8ddfVXXDScjN_AIT6dBc&exportFormat=txt";
 		HttpURLConnection connection = null;
 		try{
+			Set<String> tokens = new HashSet<String>();
 			URL url = new URL(gDriveFileResponseObj.getExportLinks().getTextPlain());
 			connection = (HttpURLConnection) url.openConnection();
 			connection.setRequestMethod("GET");
@@ -162,14 +172,14 @@ public class ParserUtils {
 		    StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
 		    String inputLine;
 		    while ((inputLine = rd.readLine()) != null) {
-		    	response.append(inputLine);
-		    	//response.append("\n");
+		    	String [] tokensArray = inputLine.split(" ");
+		    	tokens.addAll(Arrays.asList(tokensArray));
+		    }
+		    for(String value : tokens){
+		    	response.append(value + " ");
 		    }
 		    rd.close();
 		    mapPlatformIdBody.put(gDriveFileResponseObj.getId(), response.toString());
-		    //System.out.println(response.toString());		    
-		    
-		    //return response.toString();
 		}catch(Exception e){
 			e.printStackTrace();
 			//return null;
