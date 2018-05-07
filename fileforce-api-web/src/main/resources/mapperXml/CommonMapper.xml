@@ -2,24 +2,20 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="fileforce.Mapper.CommonMapper">
 	
-	<resultMap id="userDetail" type="fileforce.Model.Response.TestResponse">
-  		<id property="id" jdbcType="NUMERIC" column="userId"/>
-    	<result property="name" jdbcType="VARCHAR" column="userName" />
-	</resultMap>
-	
 	<resultMap id="masterDetail" type="fileforce.Model.Response.MasterTableResponse">
   		<id property="orgId" jdbcType="VARCHAR" column="orgId"/>
     	<result property="schemaName" jdbcType="VARCHAR" column="schemaName" />
 	</resultMap>
 	
-	
-	<select id="getUserInfoById" parameterType="int" resultMap="userDetail">
-			select 
-		    b.id as "userId",
-		    b.name as "userName"
-		    from UserInfo b  where b.id = #{id} 
-	</select>
-	
+	<resultMap id="contentDetail" type="fileforce.Model.Response.ContentVersionResponse">
+  		<id property="id" jdbcType="VARCHAR" column="id"/>
+    	<result property="externalId" jdbcType="VARCHAR" column="externalId" />
+    	<result property="fileExtension" jdbcType="VARCHAR" column="fileExtension" />
+    	<result property="fileType" jdbcType="VARCHAR" column="fileType" />
+    	<result property="firstPublicationId" jdbcType="VARCHAR" column="firstPublicationId" />
+    	<result property="title" jdbcType="VARCHAR" column="title" />
+    	<result property="contentDocumentId" jdbcType="VARCHAR" column="contentDocumentId" />
+	</resultMap>
 	
 	<select id="getMasterData" parameterType="String" resultMap="masterDetail">
 			select 
@@ -28,5 +24,15 @@
 		    from master_table b  where b.org_id = #{orgId} 
 	</select>
 	
-	
+	<select id="getContentVersionData" parameterType="String" resultMap="contentDetail">
+			select 
+		    b.id as "id",
+		    b.External_Id__c as "externalId",
+		    b.FileExtension as "fileExtension",
+		    b.FileType as "fileType",
+		    b.FirstPublishLocationId as "firstPublicationId",
+		    b.Title as "title",
+		    b.ContentDocumentId as "contentDocumentId" 
+		    from techspike.ContentVersion b where b.External_Id__c = #{platformFileId} 
+	</select>
   	</mapper>

@@ -62,7 +62,14 @@ public class CommonIndexRequest {
 		private String clientSecret;
 		private String clientRedirectURI;
 		private String endpoint;
+		private String platform_file_id;
 		
+		public String getPlatform_file_id() {
+			return platform_file_id;
+		}
+		public void setPlatform_file_id(String platform_file_id) {
+			this.platform_file_id = platform_file_id;
+		}
 		public String getEndpoint() {
 			return endpoint;
 		}

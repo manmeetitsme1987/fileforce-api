@@ -30,11 +30,7 @@ public class CommonController {
 	
 	@RequestMapping(value="/indexjob/new", method=RequestMethod.POST)
 	public @ResponseBody ResponseEntity<IndexJobResponse> runIndexJob(@RequestBody CommonIndexRequest commonRequest) {
-		commonService.runIndexRequest(commonRequest);
-		IndexJobResponse obj = new IndexJobResponse();
-		obj.setJobId("Test");
-		obj.setJobStatus("In Progress");
+		IndexJobResponse obj = commonService.runIndexRequest(commonRequest);
 		return new ResponseEntity<IndexJobResponse>(obj, HttpStatus.OK);
     }
-	
 }

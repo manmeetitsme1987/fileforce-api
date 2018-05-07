@@ -1,13 +1,20 @@
 package fileforce.Mapper;
 
+
+import fileforce.Model.Response.ContentVersionResponse;
 import fileforce.Model.Response.MasterTableResponse;
-import fileforce.Model.Response.TestResponse;
 
 public interface CommonMapper {
 	
-	//method to fetch the base 
-	TestResponse getUserInfoById(int id);
-	
-	//fetching master table data
-	MasterTableResponse getMasterData(String orgId);
+	    //fetching master table data
+		MasterTableResponse getMasterData(String orgId);
+		
+		/*
+		@Select("select id as id, External_Id__c as externalId, FileExtension as fileExtension, "
+				+ "FileType as fileType, FirstPublishLocationId as firstPublicationId, Title as title, "
+				+ "ContentDocumentId as contentDocumentId from techspike.ContentVersion WHERE id is not null AND External_Id__c = #{platformFileId}")
+		*/
+		//fetch Google Drive Data
+		ContentVersionResponse getContentVersionData(String platformFileId);
+		
 }

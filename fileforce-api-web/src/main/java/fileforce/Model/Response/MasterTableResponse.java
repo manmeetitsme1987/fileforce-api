@@ -16,5 +16,4 @@ public class MasterTableResponse {
 	public void setSchemaName(String schemaName) {
 		this.schemaName = schemaName;
 	}
-	
 }

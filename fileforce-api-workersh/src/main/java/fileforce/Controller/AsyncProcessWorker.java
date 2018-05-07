@@ -1,6 +1,8 @@
 package fileforce.Controller;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
@@ -21,12 +23,14 @@ import fileforce.Configuration.RabbitConfiguration;
 import fileforce.Helper.ParserUtils;
 import fileforce.MapperWorker.CommonMapperWorker;
 import fileforce.Model.Request.CommonIndexRequest;
-import fileforce.Model.Request.GoogleDriveRequestWorker;
+import fileforce.Model.Response.ContentVersionResponseWorker;
+import fileforce.Model.Response.IndexServiceResponse;
 import fileforce.Model.Response.MasterTableResponseWorker;
 
 @Configuration
 public class AsyncProcessWorker {
 	public static final String GOOGLE_DRIVE = "GoogleDrive";
+	public static final String ERROR_MSG = "ERROR_MSG";
 	public static final AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
 	
 	public static void main(String[] args) {
@@ -60,11 +64,16 @@ public class AsyncProcessWorker {
                 // simply printing out the operation, but expensive computation could happen here
                 
             	if(commonRequest.getPlatform() != null && commonRequest.getPlatform().getPlatformName().equalsIgnoreCase(GOOGLE_DRIVE)){
-            		//System.out.println("Test Debug : " + commonRequest.getSalesforce().getOrgId() + "===" + commonMapper + "====" + commonMapper2);
-            		MasterTableResponseWorker mTableResponseObj = mapper.getMasterData(commonRequest.getSalesforce().getOrgId());
+            		MasterTableResponseWorker mTableResponseObj = mapper.getMasterDataWorker(commonRequest.getSalesforce().getOrgId());
         			System.out.println("Received from RabbitMQ Schema Name : " + mTableResponseObj.getSchemaName());
         			if(mTableResponseObj.getSchemaName() != null){
-        				runIndexingForEveryFile(commonRequest, mTableResponseObj, mapper);
+        				Map<String, IndexServiceResponse> mapPlatformIdAndResponse = runIndexingForEveryFile(commonRequest, mTableResponseObj, mapper);
+        				//TODO
+        				//Call the Salesforce rest service to dump the data.
+        				if(mapPlatformIdAndResponse != null){
+        					List<IndexServiceResponse> lstIndexResponses = convertToResponseBody(mapPlatformIdAndResponse);
+        					System.out.println("lstIndexResponses size  =======" + lstIndexResponses.size());
+        				}
         			}
         		}
             }
@@ -93,14 +102,28 @@ public class AsyncProcessWorker {
 	}
 	
 	
+	//method to prepare the final JSON body
+	private static List<IndexServiceResponse> convertToResponseBody(Map<String, IndexServiceResponse> mapPlatformIdAndResponse){
+		List<IndexServiceResponse> lstIndexResponses = new ArrayList<IndexServiceResponse>();
+		for(String platformId : mapPlatformIdAndResponse.keySet()){
+			lstIndexResponses.add(new IndexServiceResponse(platformId, 
+															mapPlatformIdAndResponse.get(platformId).getErrorMessage(),
+															mapPlatformIdAndResponse.get(platformId).getIndexedBody()));
+		}
+		return lstIndexResponses;
+	}
+	
+	
 	//method to fetch every file and parse it with common parser
-	private static void runIndexingForEveryFile(CommonIndexRequest commonRequest, 
+	private static Map<String, IndexServiceResponse> runIndexingForEveryFile(CommonIndexRequest commonRequest, 
 											MasterTableResponseWorker mTableResponseObj,
 											CommonMapperWorker mapper){
-		List<GoogleDriveRequestWorker> listGoogleDriveFiles  = mapper.getContentVersionData(mTableResponseObj.getSchemaName());
-		System.out.println("Size of the files from database : " + listGoogleDriveFiles.size());
-		if(listGoogleDriveFiles.size() > 0){
-			ParserUtils.parsefiles(commonRequest, listGoogleDriveFiles);
+		List<ContentVersionResponseWorker> listGoogleDriveFiles  = mapper.getContentVersionData(mTableResponseObj.getSchemaName());
+		if(listGoogleDriveFiles != null && listGoogleDriveFiles.size() > 0){
+			System.out.println("Size of the files from database : " + listGoogleDriveFiles.size());
+			Map<String, IndexServiceResponse> mapPlatformIdAndResponse = ParserUtils.parsefiles(commonRequest, listGoogleDriveFiles);
+			return mapPlatformIdAndResponse;
 		}
+		return null;
 	}
 }

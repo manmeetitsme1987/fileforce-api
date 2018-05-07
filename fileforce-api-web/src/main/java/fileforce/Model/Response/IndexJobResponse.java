@@ -5,8 +5,15 @@ public class IndexJobResponse {
 	private String jobStatus;
 	private String errorStatus;
 	private String errorMessage;
+	private String indexBodyResponse;
 	
 	
+	public String getIndexBodyResponse() {
+		return indexBodyResponse;
+	}
+	public void setIndexBodyResponse(String indexBodyResponse) {
+		this.indexBodyResponse = indexBodyResponse;
+	}
 	public String getJobId() {
 		return jobId;
 	}

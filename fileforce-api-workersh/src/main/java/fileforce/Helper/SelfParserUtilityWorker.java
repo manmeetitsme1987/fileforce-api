@@ -47,18 +47,20 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class SelfParserUtilityWorker {
+import fileforce.Controller.AsyncProcessWorker;
+import fileforce.Model.Response.IndexServiceResponse;
 
+public class SelfParserUtilityWorker {
 	
-	
-	public static void readPDFFile(String url, String fileId, Map<String, String> mapPlatformIdBody){
+	public static void readPDFFile(String url, String fileId, Map<String, IndexServiceResponse> mapPlatformIdBody){
 		// Create a PdfDocument instance
 		Set<String> tokens = new HashSet<String>();
 		PDFParser parser;
-		String parsedText = "";
+		String parsedText = "", errorMessage = "";
 		PDFTextStripper pdfStripper = null;
 		PDDocument pdDoc = null;
 		COSDocument cosDoc = null;
+		Boolean isError = false;
 		try {
 			InputStream inputStream = new URL(url).openStream();
 			parser = new PDFParser(inputStream);
@@ -71,9 +73,11 @@ public class SelfParserUtilityWorker {
 			parsedText = pdfStripper.getText(pdDoc);
 			
 		} catch (Exception e) {
+			isError = true;
 			System.err
 					.println("An exception occured in parsing the PDF Document."
 							+ e.getMessage());
+			errorMessage = e.getMessage();
 		} finally {
 			try {
 				if (cosDoc != null)
@@ -84,16 +88,20 @@ public class SelfParserUtilityWorker {
 				e.printStackTrace();
 			}
 		}
-		for(String str : parsedText.split(" ")){
-			tokens.add(str);
+		if(!isError){
+			for(String str : parsedText.split(" ")){
+				tokens.add(str);
+			}
+			
+			//now making the string again
+			StringBuilder response = new StringBuilder();
+			for(String value : tokens){
+		    	response.append(value + " ");
+		    }
+			mapPlatformIdBody.put(fileId, new IndexServiceResponse(null, response.toString()));
+		}else{
+			mapPlatformIdBody.put(fileId, new IndexServiceResponse(errorMessage, null));
 		}
-		
-		//now making the string again
-		StringBuilder response = new StringBuilder();
-		for(String value : tokens){
-	    	response.append(value + " ");
-	    }
-		mapPlatformIdBody.put(fileId, response.toString());
 	}
 	
 	public static void readXLSFile(String url, Map<String, String> mapPlatformIdBody){
@@ -124,7 +132,7 @@ public class SelfParserUtilityWorker {
 		}
 	}
 	
-	public static void readXLSXFile(String url, String fileId, Map<String, String> mapPlatformIdBody){
+	public static void readXLSXFile(String url, String fileId, Map<String, IndexServiceResponse> mapPlatformIdBody){
 		try { 
 			InputStream fis = new URL(url).openStream();
 			XSSFWorkbook book = new XSSFWorkbook(fis);
@@ -166,9 +174,10 @@ public class SelfParserUtilityWorker {
 			for(String value : tokens){
 		    	response.append(value + " ");
 		    }
-			mapPlatformIdBody.put(fileId, response.toString());
+			mapPlatformIdBody.put(fileId, new IndexServiceResponse(null, response.toString()));
 		}catch (Exception e) {
 			e.printStackTrace();
+			mapPlatformIdBody.put(fileId, new IndexServiceResponse(e.getMessage(), null));
 		}
 	}
 	
@@ -338,9 +347,9 @@ public class SelfParserUtilityWorker {
 		}
 	}
 	
-	public static void readPPTXFile(String url, String fileId, Map<String, String> mapPlatformIdBody){
+	public static void readPPTXFile(String url, String fileId, Map<String, IndexServiceResponse> mapPlatformIdBody){
 		try{
-			
+			Set<String> tokens = new HashSet<String>();
 			InputStream fis = new URL(url).openStream();
 			XMLSlideShow ppt = new XMLSlideShow(fis);
 			XSLFSlide[] slides = ppt.getSlides();
@@ -351,21 +360,20 @@ public class SelfParserUtilityWorker {
 				XSLFSlide slide = slides[i];
 				String title=slide.getTitle();
 				List<DrawingParagraph> data = slide.getCommonSlideData().getText();
-				
-				response.append(title + "\r");
-				System.out.println(title);
+				tokens.add(title);
+				//response.append(title + "\r");
+				//System.out.println(title);
 				
 				for(int j=0;j<data.size();j++)
 				{
 					DrawingParagraph para = data.get(j);
-					System.out.println(para.getText());
-					response.append(para.getText() + "\r");
+					//tokens.add(para.getText());
 				}
 			}
-			
-			mapPlatformIdBody.put(fileId, response.toString());
+			mapPlatformIdBody.put(fileId, new IndexServiceResponse(null, response.toString()));
 		}catch(Exception ioe){
 			ioe.printStackTrace();
+			mapPlatformIdBody.put(fileId, new IndexServiceResponse(ioe.getMessage(), null));
 		}
 	}
 
