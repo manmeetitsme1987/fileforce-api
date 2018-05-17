@@ -16,7 +16,7 @@ import fileforce.Helper.ParserUtilsWeb;
 import fileforce.Mapper.CommonMapper;
 import fileforce.Model.Request.CommonIndexRequest;
 import fileforce.Model.Response.ContentVersionResponse;
-import fileforce.Model.Response.IndexJobResponse;
+import fileforce.Model.Response.IndexServiceResponse;
 import fileforce.Model.Response.MasterTableResponse;
 
 @Service
@@ -32,8 +32,8 @@ public class CommonService {
 		return response;
 	}
 	
-	public IndexJobResponse runIndexRequest(CommonIndexRequest commonRequest){
-		IndexJobResponse obj = new IndexJobResponse();
+	public IndexServiceResponse runIndexRequest(CommonIndexRequest commonRequest){
+		IndexServiceResponse obj = new IndexServiceResponse();
 		try{
 			if(commonRequest.getPlatform() != null){
 				if(commonRequest.getPlatform().getPlatform_file_id().isEmpty()){
@@ -44,42 +44,45 @@ public class CommonService {
 			    	Gson gson = new Gson(); 
 					String json = gson.toJson(commonRequest);
 					System.out.println("Sent to RabbitMQ: " + json);
+					IndexServiceResponse.Job tempObj = obj.new Job();
+					tempObj.setJobId("Test");
+					tempObj.setJobStatus("In Progress");
+					tempObj.setMessage("Your request has been queued.");
+					obj.setJobInfo(tempObj);
+					
 					amqpTemplate.convertAndSend(json);
-					obj.setJobId("Test");
-					obj.setJobStatus("Requested");
 				}else{
 					//parse one file and respond synchronously
 					if(commonRequest.getPlatform().getPlatformName().equalsIgnoreCase(GOOGLE_DRIVE)){
 	            		MasterTableResponse mTableResponseObj = commonMapper.getMasterData(commonRequest.getSalesforce().getOrgId());
 	        			System.out.println("Received from RabbitMQ Schema Name : " + mTableResponseObj.getSchemaName());
 	        			if(mTableResponseObj.getSchemaName() != null){
-	        				Map<String, String> mapPlatformIdAndResponse = runIndexingForEveryFile(commonRequest, mTableResponseObj);
-	        				if(mapPlatformIdAndResponse != null && mapPlatformIdAndResponse.containsKey(commonRequest.getPlatform().getPlatform_file_id())){
-	        					obj.setIndexBodyResponse(mapPlatformIdAndResponse.get(commonRequest.getPlatform().getPlatform_file_id()));
-	        				}else{
-	        					obj.setErrorStatus("Error in Parsing");
-	        					obj.setErrorMessage(mapPlatformIdAndResponse.get(ERROR_MSG));
+	        				Map<String, IndexServiceResponse> mapPlatformIdAndResponse = runIndexingForEveryFile(commonRequest, mTableResponseObj);
+	        				//Call the Salesforce rest service to dump the data.
+	        				if(mapPlatformIdAndResponse != null){
+	        					obj = mapPlatformIdAndResponse.get(commonRequest.getPlatform().getPlatform_file_id());
+	        					System.out.println("obj obj  =======" + obj);
 	        				}
 	        			}
 	        		}
-					obj.setJobId("Test");
-					obj.setJobStatus("Completed");
 				}
 			}
     	}catch(Exception e){
     		System.out.println("Error ====" + e.getStackTrace());
     		System.out.println("Error ====" + e.getMessage());
     	}
+		
+		System.out.println("obj ====" + obj.getJobInfo().getMessage());
 		return obj;
 	}
 	
 	//method to fetch every file and parse it with common parser
-	private Map<String, String> runIndexingForEveryFile(CommonIndexRequest commonRequest, 
+	private Map<String, IndexServiceResponse> runIndexingForEveryFile(CommonIndexRequest commonRequest, 
 											MasterTableResponse mTableResponseObj){
 		ContentVersionResponse contentVersionFile  = commonMapper.getContentVersionData(commonRequest.getPlatform().getPlatform_file_id());
 		System.out.println("Size of the files from database : " + contentVersionFile);
 		if(contentVersionFile != null){
-			Map<String, String> mapPlatformIdAndResponse = ParserUtilsWeb.parsefiles(commonRequest, contentVersionFile);
+			Map<String, IndexServiceResponse> mapPlatformIdAndResponse = ParserUtilsWeb.parsefiles(commonRequest, contentVersionFile);
 			return mapPlatformIdAndResponse;
 		}
 		return null;

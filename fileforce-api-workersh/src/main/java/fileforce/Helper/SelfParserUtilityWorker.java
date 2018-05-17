@@ -48,11 +48,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import fileforce.Controller.AsyncProcessWorker;
-import fileforce.Model.Response.IndexServiceResponse;
+import fileforce.Model.Response.IndexServiceResponseWorker;
 
 public class SelfParserUtilityWorker {
 	
-	public static void readPDFFile(String url, String fileId, Map<String, IndexServiceResponse> mapPlatformIdBody){
+	public static void readPDFFile(String url, String fileId, Map<String, IndexServiceResponseWorker> mapPlatformIdBody){
 		// Create a PdfDocument instance
 		Set<String> tokens = new HashSet<String>();
 		PDFParser parser;
@@ -98,9 +98,9 @@ public class SelfParserUtilityWorker {
 			for(String value : tokens){
 		    	response.append(value + " ");
 		    }
-			mapPlatformIdBody.put(fileId, new IndexServiceResponse(null, response.toString()));
+			mapPlatformIdBody.get(fileId).setIndex(response.toString());
 		}else{
-			mapPlatformIdBody.put(fileId, new IndexServiceResponse(errorMessage, null));
+			mapPlatformIdBody.get(fileId).setErrorMessage(errorMessage);
 		}
 	}
 	
@@ -132,7 +132,7 @@ public class SelfParserUtilityWorker {
 		}
 	}
 	
-	public static void readXLSXFile(String url, String fileId, Map<String, IndexServiceResponse> mapPlatformIdBody){
+	public static void readXLSXFile(String url, String fileId, Map<String, IndexServiceResponseWorker> mapPlatformIdBody){
 		try { 
 			InputStream fis = new URL(url).openStream();
 			XSSFWorkbook book = new XSSFWorkbook(fis);
@@ -174,10 +174,10 @@ public class SelfParserUtilityWorker {
 			for(String value : tokens){
 		    	response.append(value + " ");
 		    }
-			mapPlatformIdBody.put(fileId, new IndexServiceResponse(null, response.toString()));
+			mapPlatformIdBody.get(fileId).setIndex(response.toString());
 		}catch (Exception e) {
 			e.printStackTrace();
-			mapPlatformIdBody.put(fileId, new IndexServiceResponse(e.getMessage(), null));
+			mapPlatformIdBody.get(fileId).setIndex(e.getMessage());
 		}
 	}
 	
@@ -347,7 +347,7 @@ public class SelfParserUtilityWorker {
 		}
 	}
 	
-	public static void readPPTXFile(String url, String fileId, Map<String, IndexServiceResponse> mapPlatformIdBody){
+	public static void readPPTXFile(String url, String fileId, Map<String, IndexServiceResponseWorker> mapPlatformIdBody){
 		try{
 			Set<String> tokens = new HashSet<String>();
 			InputStream fis = new URL(url).openStream();
@@ -370,12 +370,10 @@ public class SelfParserUtilityWorker {
 					//tokens.add(para.getText());
 				}
 			}
-			mapPlatformIdBody.put(fileId, new IndexServiceResponse(null, response.toString()));
+			mapPlatformIdBody.get(fileId).setIndex(response.toString());
 		}catch(Exception ioe){
 			ioe.printStackTrace();
-			mapPlatformIdBody.put(fileId, new IndexServiceResponse(ioe.getMessage(), null));
+			mapPlatformIdBody.get(fileId).setIndex(ioe.getMessage());
 		}
 	}
-
-
 }

@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +34,7 @@ import fileforce.Model.Request.GoogleDriveRequest;
 import fileforce.Model.Response.GoogleDriveAuthResponse;
 import fileforce.Model.Response.GoogleDriveFileResponse;
 import fileforce.Model.Response.GoogleDriveFilesResponse;
+import fileforce.Model.Response.IndexServiceResponse;
 
 @Service
 public class GoogleDriveService {
@@ -315,7 +315,7 @@ public class GoogleDriveService {
 			gDriveRequest = prepareDummyData();
 		}
 		GoogleDriveAuthResponse gDriveResponseObj = getDriveDataWithRefreshToken(gDriveRequest);
-		Map<String, String> mapPlatformIdBody = new HashMap();
+		Map<String, IndexServiceResponse> mapPlatformIdBody = new HashMap();
 		if(gDriveResponseObj.getAccess_token() != null){
 			for(GoogleDriveRequest.GoogleDriveFileRequest fileRequest : gDriveRequest.getFiles()){
 				getIndividualFileData(fileRequest, gDriveRequest, gDriveResponseObj, mapPlatformIdBody);
@@ -332,7 +332,7 @@ public class GoogleDriveService {
 	public static void getIndividualFileData(GoogleDriveRequest.GoogleDriveFileRequest fileRequest, 
 												GoogleDriveRequest gDriveRequest,
 												GoogleDriveAuthResponse gDriveResponseObj,
-												Map<String, String> mapPlatformIdBody){
+												Map<String, IndexServiceResponse> mapPlatformIdBody){
 		HttpURLConnection connection = null;
 		try{
 			URL url = new URL(gDriveRequest.getEndpoint() + "/" + fileRequest.getPlatform_id());
@@ -367,6 +367,13 @@ public class GoogleDriveService {
 		    rd.close();
 		    Gson gson = new Gson();
 		    GoogleDriveFileResponse gDriveFileResponseObj = gson.fromJson(response.toString(), GoogleDriveFileResponse.class);
+		    mapPlatformIdBody.put(gDriveFileResponseObj.getId(), new IndexServiceResponse(gDriveFileResponseObj.getTitle(),
+																							gDriveFileResponseObj.getKind(),
+																							gDriveFileResponseObj.getMimeType(),
+																							CommonService.GOOGLE_DRIVE,
+																							gDriveFileResponseObj.getId(),
+																							gDriveFileResponseObj.getWebContentLink(),
+																							""));
 		    //not supporting Images for now
 		    String fileTitle = gDriveFileResponseObj.getTitle().toLowerCase();
 		    if(!(fileTitle.contains("jpeg") || fileTitle.contains("jpg"))){
@@ -398,7 +405,7 @@ public class GoogleDriveService {
 	}
 	
 	
-	public static void getTheFinalTextData(GoogleDriveFileResponse gDriveFileResponseObj, Map<String, String> mapPlatformIdBody){
+	public static void getTheFinalTextData(GoogleDriveFileResponse gDriveFileResponseObj, Map<String, IndexServiceResponse> mapPlatformIdBody){
 		//String endpoint = "https://docs.google.com/feeds/download/documents/export/Export?id=1WdHzBAP7pwS0aahB-yOu0zU8ddfVXXDScjN_AIT6dBc&exportFormat=txt";
 		HttpURLConnection connection = null;
 		try{
@@ -415,12 +422,10 @@ public class GoogleDriveService {
 		    	//response.append("\n");
 		    }
 		    rd.close();
-		    mapPlatformIdBody.put(gDriveFileResponseObj.getId(), response.toString());
-		    //System.out.println(response.toString());		    
-		    
-		    //return response.toString();
+		    mapPlatformIdBody.get(gDriveFileResponseObj.getId()).setIndex(response.toString());
 		}catch(Exception e){
 			e.printStackTrace();
+			mapPlatformIdBody.get(gDriveFileResponseObj.getId()).setErrorMessage(e.getMessage());
 			//return null;
 		}finally{
 		    if (connection != null) {

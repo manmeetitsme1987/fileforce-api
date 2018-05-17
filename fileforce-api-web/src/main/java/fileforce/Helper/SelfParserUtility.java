@@ -47,11 +47,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import fileforce.Model.Response.IndexServiceResponse;
 import fileforce.Service.CommonService;
 
 public class SelfParserUtility {
 	
-	public static void readPDFFile(String url, String fileId, Map<String, String> mapPlatformIdBody){
+	public static void readPDFFile(String url, String fileId, Map<String, IndexServiceResponse> mapPlatformIdBody){
 		// Create a PdfDocument instance
 		Set<String> tokens = new HashSet<String>();
 		PDFParser parser;
@@ -98,13 +99,13 @@ public class SelfParserUtility {
 			for(String value : tokens){
 		    	response.append(value + " ");
 		    }
-			mapPlatformIdBody.put(fileId, response.toString());
+			mapPlatformIdBody.get(fileId).setIndex(response.toString());
 		}else{
-			mapPlatformIdBody.put(CommonService.ERROR_MSG, errorMessage);
+			mapPlatformIdBody.get(fileId).setErrorMessage(errorMessage);
 		}
 	}
 	
-	public static void readXLSFile(String url, Map<String, String> mapPlatformIdBody){
+	public static void readXLSFile(String url, Map<String, IndexServiceResponse> mapPlatformIdBody){
 		try {
 			InputStream inputStream = new URL(url).openStream();
 			HSSFWorkbook workbook = new HSSFWorkbook(inputStream);
@@ -132,7 +133,7 @@ public class SelfParserUtility {
 		}
 	}
 	
-	public static void readXLSXFile(String url, String fileId, Map<String, String> mapPlatformIdBody){
+	public static void readXLSXFile(String url, String fileId, Map<String, IndexServiceResponse> mapPlatformIdBody){
 		try { 
 			InputStream fis = new URL(url).openStream();
 			XSSFWorkbook book = new XSSFWorkbook(fis);
@@ -174,10 +175,10 @@ public class SelfParserUtility {
 			for(String value : tokens){
 		    	response.append(value + " ");
 		    }
-			mapPlatformIdBody.put(fileId, response.toString());
+			mapPlatformIdBody.get(fileId).setIndex(response.toString());
 		}catch (Exception e) {
 			e.printStackTrace();
-			mapPlatformIdBody.put(CommonService.ERROR_MSG, e.getMessage());
+			mapPlatformIdBody.get(fileId).setErrorMessage(e.getMessage());
 		}
 	}
 	
@@ -347,7 +348,7 @@ public class SelfParserUtility {
 		}
 	}
 	
-	public static void readPPTXFile(String url, String fileId, Map<String, String> mapPlatformIdBody){
+	public static void readPPTXFile(String url, String fileId, Map<String, IndexServiceResponse> mapPlatformIdBody){
 		try{
 			Set<String> tokens = new HashSet<String>();
 			InputStream fis = new URL(url).openStream();
@@ -370,10 +371,10 @@ public class SelfParserUtility {
 					//tokens.add(para.getText());
 				}
 			}
-			mapPlatformIdBody.put(fileId, response.toString());
+			mapPlatformIdBody.get(fileId).setIndex(response.toString());
 		}catch(Exception ioe){
 			ioe.printStackTrace();
-			mapPlatformIdBody.put(CommonService.ERROR_MSG, ioe.getMessage());
+			mapPlatformIdBody.get(fileId).setErrorMessage(ioe.getMessage());
 		}
 	}
 

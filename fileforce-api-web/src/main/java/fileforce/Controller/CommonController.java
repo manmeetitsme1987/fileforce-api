@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import fileforce.Model.Request.CommonIndexRequest;
-import fileforce.Model.Response.IndexJobResponse;
+import fileforce.Model.Response.IndexServiceResponse;
 import fileforce.Model.Response.MasterTableResponse;
 import fileforce.Service.CommonService;
 
@@ -29,8 +29,8 @@ public class CommonController {
     }
 	
 	@RequestMapping(value="/indexjob/new", method=RequestMethod.POST)
-	public @ResponseBody ResponseEntity<IndexJobResponse> runIndexJob(@RequestBody CommonIndexRequest commonRequest) {
-		IndexJobResponse obj = commonService.runIndexRequest(commonRequest);
-		return new ResponseEntity<IndexJobResponse>(obj, HttpStatus.OK);
+	public @ResponseBody ResponseEntity<IndexServiceResponse> runIndexJob(@RequestBody CommonIndexRequest commonRequest) {
+		IndexServiceResponse obj = commonService.runIndexRequest(commonRequest);
+		return new ResponseEntity<IndexServiceResponse>(obj, HttpStatus.OK);
     }
 }

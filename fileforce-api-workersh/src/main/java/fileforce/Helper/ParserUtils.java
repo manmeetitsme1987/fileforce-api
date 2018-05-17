@@ -20,13 +20,13 @@ import fileforce.Model.Request.CommonIndexRequest;
 import fileforce.Model.Response.ContentVersionResponseWorker;
 import fileforce.Model.Response.GoogleDriveAuthResponseWorker;
 import fileforce.Model.Response.GoogleDriveFileResponseWorker;
-import fileforce.Model.Response.IndexServiceResponse;
+import fileforce.Model.Response.IndexServiceResponseWorker;
 
 public class ParserUtils {
 	
-	public static Map<String, IndexServiceResponse> parsefiles(CommonIndexRequest commonRequest, List<ContentVersionResponseWorker> gDriveFileList){
+	public static Map<String, IndexServiceResponseWorker> parsefiles(CommonIndexRequest commonRequest, List<ContentVersionResponseWorker> gDriveFileList){
 		GoogleDriveAuthResponseWorker gDriveResponseObj = getDriveDataWithRefreshToken(commonRequest);
-		Map<String, IndexServiceResponse> mapPlatformIdBody = new HashMap();
+		Map<String, IndexServiceResponseWorker> mapPlatformIdBody = new HashMap();
 		if(gDriveResponseObj.getAccess_token() != null){
 			Integer countRecords = 1;
 			for(ContentVersionResponseWorker fileRequest : gDriveFileList){
@@ -96,7 +96,7 @@ public class ParserUtils {
 	public static void getIndividualFileData(ContentVersionResponseWorker fileRequest, 
 												CommonIndexRequest commonIndexRequest,
 												GoogleDriveAuthResponseWorker gDriveResponseObj,
-												Map<String, IndexServiceResponse> mapPlatformIdBody){
+												Map<String, IndexServiceResponseWorker> mapPlatformIdBody){
 			HttpURLConnection connection = null;
 			try{
 				URL url = new URL(commonIndexRequest.getPlatform().getEndpoint() + "/" + fileRequest.getExternalId());
@@ -109,26 +109,37 @@ public class ParserUtils {
 				InputStream is = connection.getInputStream();
 				BufferedReader rd = new BufferedReader(new InputStreamReader(is));
 				StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
-				String inputLine;
+				String inputLine, tempFileType = "";
 				while ((inputLine = rd.readLine()) != null) {
 					if(inputLine.contains("text/plain")){
 						inputLine = inputLine.replaceAll("text/plain", "textPlain");
+						tempFileType = "text/plain";
 					}else if(inputLine.contains("text/csv")){
 						inputLine = inputLine.replaceAll("text/csv", "textCSV");
+						tempFileType = "text/csv";
 					}else if(inputLine.contains("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")){
 						inputLine = inputLine.replaceAll("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "applicationSpreadSheet");
+						tempFileType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 					}else if(inputLine.contains("application/pdf")){
 						inputLine = inputLine.replaceAll("application/pdf", "applicationPDF");
+						tempFileType = "application/pdf";
 					}else if(inputLine.contains("application/vnd.openxmlformats-officedocument.presentationml.presentation")){
 						inputLine = inputLine.replaceAll("application/vnd.openxmlformats-officedocument.presentationml.presentation", "applicationPPT");
+						tempFileType = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
 					}
-				
 					response.append(inputLine);
 					response.append("\r");
 				}
 				rd.close();
 				Gson gson = new Gson();
 				GoogleDriveFileResponseWorker gDriveFileResponseObj = gson.fromJson(response.toString(), GoogleDriveFileResponseWorker.class);
+				mapPlatformIdBody.put(gDriveFileResponseObj.getId(), new IndexServiceResponseWorker(gDriveFileResponseObj.getTitle(),
+																								gDriveFileResponseObj.getKind(),
+																								tempFileType,
+																								AsyncProcessWorker.GOOGLE_DRIVE,
+																								gDriveFileResponseObj.getId(),
+																								gDriveFileResponseObj.getWebContentLink(),
+																								commonIndexRequest.getSalesforce().getFilesLibraryId()));
 				//not supporting Images for now
 				String fileTitle = gDriveFileResponseObj.getTitle().toLowerCase();
 				if(!(fileTitle.contains("jpeg") || fileTitle.contains("jpg"))){
@@ -166,8 +177,7 @@ public class ParserUtils {
 			}
 		}
 	
-	
-	private static void getTheFinalTextData(GoogleDriveFileResponseWorker gDriveFileResponseObj, Map<String, IndexServiceResponse> mapPlatformIdBody){
+	private static void getTheFinalTextData(GoogleDriveFileResponseWorker gDriveFileResponseObj, Map<String, IndexServiceResponseWorker> mapPlatformIdBody){
 		HttpURLConnection connection = null;
 		try{
 			Set<String> tokens = new HashSet<String>();
@@ -187,10 +197,10 @@ public class ParserUtils {
 		    	response.append(value + " ");
 		    }
 		    rd.close();
-		    mapPlatformIdBody.put(gDriveFileResponseObj.getId(), new IndexServiceResponse(null,response.toString()));
+		    mapPlatformIdBody.get(gDriveFileResponseObj.getId()).setIndex(response.toString());
 		}catch(Exception e){
 			e.printStackTrace();
-			mapPlatformIdBody.put(gDriveFileResponseObj.getId(), new IndexServiceResponse(e.getMessage(), null));
+			mapPlatformIdBody.get(gDriveFileResponseObj.getId()).setErrorMessage(e.getMessage());
 			//return null;
 		}finally{
 		    if (connection != null) {
