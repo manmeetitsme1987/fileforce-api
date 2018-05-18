@@ -1,12 +1,12 @@
 package fileforce.Controller;
 
-import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.Signature;
@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.Queue;
@@ -38,6 +40,7 @@ import fileforce.Model.Request.CommonIndexRequest;
 import fileforce.Model.Response.ContentVersionResponseWorker;
 import fileforce.Model.Response.IndexServiceResponseWorker;
 import fileforce.Model.Response.MasterTableResponseWorker;
+import fileforce.Model.Response.SalesforceAuthTokenResponse;
 
 @Configuration
 public class AsyncProcessWorker {
@@ -115,46 +118,7 @@ public class AsyncProcessWorker {
 	}
 	
 	
-	private static void makeHTTPCallToSalesforce(List<IndexServiceResponseWorker> lstIndexResponses, CommonIndexRequest commonRequest){
-		getJWTAccessToken();
-		HttpURLConnection connection = null;
-		try{
-			URL url = new URL(commonRequest.getSalesforce().getUpdateFilesURL());
-			connection = (HttpURLConnection) url.openConnection();
-			connection.setRequestMethod("POST");
-			//connection.setRequestProperty("Content-Length", lstIndexResponses.);
-			connection.setRequestProperty("Content-Type", "application/json");
-		    connection.setUseCaches(false);
-		    connection.setDoOutput(true);
-		    
-		    OutputStream os = connection.getOutputStream();
-		    OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8"); 
-		    
-		    Gson gson = new Gson(); 
-			String json = gson.toJson(lstIndexResponses);
-			System.out.println(json + "=== converted JSON");
-			
-		    osw.write(json);
-		    osw.flush();
-		    osw.close();
-		    os.close();  //don't forget to close the OutputStream
-		    connection.connect();
-		    
-		    InputStream in = new BufferedInputStream(connection.getInputStream());
-            String result = org.apache.commons.io.IOUtils.toString(in, "UTF-8");
-            
-            System.out.println(result + "=== converted JSON after call to Salesforce");
-            in.close();
-		}catch(Exception e){
-			e.printStackTrace();
-		}finally{
-			if (connection != null) {
-				connection.disconnect();
-			}
-		}
-	}
-	
-	private static void getJWTAccessToken(){
+	private static SalesforceAuthTokenResponse getJWTAuthToken(CommonIndexRequest commonRequest){
 	    String header = "{\"alg\":\"RS256\"}";
 	    String claimTemplate = "'{'\"iss\": \"{0}\", \"sub\": \"{1}\", \"aud\": \"{2}\", \"exp\": \"{3}\"'}'";
 
@@ -163,14 +127,15 @@ public class AsyncProcessWorker {
 	      //Encode the JWT Header and add it to our string to sign
 	      //token.append(Base64.encodeBase64URLSafeString(header.getBytes("UTF-8")));
 	      token.append(Base64.encodeBase64URLSafeString(header.getBytes("UTF-8")));
+	      AppConfig configNew = ctx.getBean(AppConfig.class);
 	      //Separate with a period
 	      token.append(".");
 
 	      //Create the JWT Claims Object
 	      String[] claimArray = new String[4];
-	      claimArray[0] = "3MVG95NPsF2gwOiNgyqtZADg2uWtpzF0B4X5wc5j.ZX2VGvKWpmhEQp0U7Zhv2usa9bhY3lb6uGmLOZHLavbY";
-	      claimArray[1] = "manmeetitsme1987+fileforce-techspike@gmail.com";
-	      claimArray[2] = "https://login.salesforce.com";
+	      claimArray[0] = configNew.getKey1()+"."+configNew.getKey2();
+	      claimArray[1] = commonRequest.getSalesforce().getUserName();
+	      claimArray[2] = commonRequest.getSalesforce().getSourceOrg();
 	      claimArray[3] = Long.toString( ( System.currentTimeMillis()/1000 ) + 300);
 	      MessageFormat claims;
 	      claims = new MessageFormat(claimTemplate);
@@ -181,8 +146,11 @@ public class AsyncProcessWorker {
 
 	      //Load the private key from a keystore
 	      KeyStore keystore = KeyStore.getInstance("JKS");
-	      keystore.load(new FileInputStream("./static/00D1r000000TYde.jks"), "qwerqwer1".toCharArray());
-	      PrivateKey privateKey = (PrivateKey) keystore.getKey("SelfSignedCert_10Apr2018_152118", "qwerqwer1".toCharArray());
+	      
+	      String workingDir = System.getProperty("user.dir");
+	      //System.out.println("Current working directory : " + workingDir + "===" + configNew.getDriverClassName() + "===" + configNew);
+	      keystore.load(new FileInputStream(workingDir + "/fileforce-api-workersh/src/main/resources/static/"+configNew.getJksFileName()+".jks"), String.valueOf(configNew.getJksFilePassword()).toCharArray());
+	      PrivateKey privateKey = (PrivateKey) keystore.getKey(configNew.getJksAlias(), String.valueOf(configNew.getJksAliasPassword()).toCharArray());
 	      
 	      //Sign the JWT Header + "." + JWT Claims Object
 	      Signature signature = Signature.getInstance("SHA256withRSA");
@@ -195,13 +163,126 @@ public class AsyncProcessWorker {
 
 	      //Add the encoded signature
 	      token.append(signedPayload);
-
 	      System.out.println(token.toString());
-
+	      SalesforceAuthTokenResponse salesforceResponseObj = getAuthTokenFromSalesforce(token.toString(), commonRequest);
+	      System.out.println("=======salesforceResponseObj=========" + salesforceResponseObj);
+	      return salesforceResponseObj;
 	    } catch (Exception e) {
+	    	System.out.println("Error in getting JWT Bearer Token :==="  + e.getMessage());
 	        e.printStackTrace();
+	        return null;
 	    }
-	  
+	}
+	
+	private static SalesforceAuthTokenResponse getAuthTokenFromSalesforce(String signedJwtRequest, CommonIndexRequest commonRequest){
+		  HttpURLConnection connection = null;
+			try {
+				String payload = "grant_type=" + URLEncoder.encode("urn:ietf:params:oauth:grant-type:jwt-bearer", "UTF-8");
+				payload += "&assertion=" + signedJwtRequest;
+				
+			    URL url = new URL(commonRequest.getSalesforce().getSourceOrg() + "/services/oauth2/token");
+			    connection = (HttpURLConnection) url.openConnection();
+			    connection.setRequestMethod("POST");
+			    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			    connection.setRequestProperty("Content-length", payload.getBytes().length + "");
+			    connection.setUseCaches(false);
+			    connection.setDoOutput(true);
+			    connection.setDoInput(true);
+			    
+			    DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
+		        outputStream.writeBytes(payload);
+		        outputStream.flush();
+		        
+		        int rc = connection.getResponseCode();
+		        InputStreamReader is = null;
+		        if(rc == 200){
+		        	is = new InputStreamReader(connection.getInputStream());
+		        }else{
+		        	is = new InputStreamReader(connection.getErrorStream());
+		        }
+		        BufferedReader rd = new BufferedReader(is);
+		        StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
+			    String line;
+			    while ((line = rd.readLine()) != null) {
+			      response.append(line);
+			      response.append('\r');
+			    }
+			    Gson gson = new Gson();
+			    SalesforceAuthTokenResponse salesforceResponseObj = gson.fromJson(response.toString(), SalesforceAuthTokenResponse.class);
+			    rd.close();
+			    System.out.println("salesforceResponseObj======" + salesforceResponseObj);
+			    return salesforceResponseObj;
+			  } catch (Exception e) {
+			    e.printStackTrace();
+			    //return null;
+			  } finally {
+			    if (connection != null) {
+			      connection.disconnect();
+			    }
+			  }
+			return null;
+	  }
+	
+	private static void makeHTTPCallToSalesforce(List<IndexServiceResponseWorker> lstIndexResponses, CommonIndexRequest commonRequest){
+		HttpURLConnection connection = null;
+		try{
+			SalesforceAuthTokenResponse sAuthObj = getJWTAuthToken(commonRequest);
+			if(sAuthObj != null && sAuthObj.getAccess_token() != null){
+				URL url = new URL(commonRequest.getSalesforce().getUpdateFilesURL());
+				connection = (HttpURLConnection) url.openConnection();
+				connection.setRequestMethod("POST");
+				connection.setRequestProperty("Authorization", "Bearer " + sAuthObj.getAccess_token());
+				connection.setRequestProperty("Content-Type", "application/json");
+			    connection.setUseCaches(false);
+			    connection.setDoOutput(true);
+			    
+			    JSONArray listParsedFiles = new JSONArray();
+			    for(IndexServiceResponseWorker tempObj : lstIndexResponses){
+			    	JSONObject obj = new JSONObject();
+				    obj.put("platform_id", tempObj.getPlatform_id());
+				    obj.put("type", tempObj.getType());
+				    obj.put("mimeType", tempObj.getMimeType());
+				    obj.put("platform", tempObj.getPlatform());
+				    obj.put("url", tempObj.getUrl());
+				    obj.put("name", tempObj.getName());
+				    listParsedFiles.add(obj);
+			    }
+		        String json2 = listParsedFiles.toJSONString();
+				
+				DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
+		        outputStream.writeBytes(json2);
+		        outputStream.flush();
+		        
+			    System.out.println(connection.getResponseCode() + "====" + connection.getResponseMessage());
+			    
+			    int rc = connection.getResponseCode();
+		        InputStreamReader is = null;
+		        if(rc == 200){
+		        	is = new InputStreamReader(connection.getInputStream());
+		        }else{
+		        	is = new InputStreamReader(connection.getErrorStream());
+		        }
+			    
+		        BufferedReader rd = new BufferedReader(is);
+		        StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
+			    String line;
+			    while ((line = rd.readLine()) != null) {
+			      response.append(line);
+			      response.append('\r');
+			    }
+	            rd.close();
+	            System.out.println("Response ======="+ response.toString());
+			}else{
+				System.out.println("sAuthObj=== " +sAuthObj.getError_description());
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+			System.out.println("ERROR  ===makeHTTPCallToSalesforce=== " +e.getMessage());
+		}finally{
+			if (connection != null) {
+				connection.disconnect();
+			}
+		}
 	}
 	
 	//method to fetch every file and parse it with common parser
@@ -217,3 +298,32 @@ public class AsyncProcessWorker {
 		return null;
 	}
 }
+
+/*
+ 
+ SAMPLE JSON
+ 
+ {  
+    "salesforce":{  
+       "updateFilesURL":"https://ff-ts-dev-ed.my.salesforce.com/services/apexrest/MetafileService/updateMetafiles",
+       "sessionId":"SESSION_ID_REMOVED",
+       "filesLibraryId":null,
+       "orgId":"00D1r000000TYde",
+       "userName":"manmeetitsme1987+fileforce-techspike@gmail.com",
+       "sourceOrg":"https://login.salesforce.com"
+    },
+    "platform":{  
+       "refreshToken":"1/KuWjejdKhpbisf_cRRvJ-bUu35v_JgLiTxePAD4X1oI",
+       "platformName":"GoogleDrive",
+       "token_endpoint":"https://www.googleapis.com/oauth2/v4/token",
+       "clientId":"619983446033-4d4i2ekkmfal2r29ngjegkc0t53qascs.apps.googleusercontent.com",
+       "clientSecret":"zDJjNrgtxiVqOuy_C8pajVVm",
+       "clientRedirectURI":"https://ff-ts-dev-ed.lightning.force.com/c/GoogleOAuthCompletion.app",
+       "endpoint":"https://www.googleapis.com/drive/v2/files",
+       "platform_file_id":"0B10mHJb-0XqOenh3YXZkY3hZQ00"
+    }
+ }
+ 
+ *
+ *
+ */

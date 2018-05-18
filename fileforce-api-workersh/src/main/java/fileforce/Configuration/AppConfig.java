@@ -50,6 +50,80 @@ public class AppConfig {
 	@Value("${tomcat.datasource.testOnReturn:FALSE}")
 	private boolean testOnReturn;
 	
+	@Value("${connected.app.consumer.key1}")
+	private String key1;
+	
+	@Value("${connected.app.consumer.key2}")
+	private String key2;
+	
+	@Value("${jks.file.name}")
+	private String jksFileName;
+	
+	@Value("${jks.file.password}")
+	private String jksFilePassword;
+	
+	public String getJksFileName() {
+		return jksFileName;
+	}
+
+	public void setJksFileName(String jksFileName) {
+		this.jksFileName = jksFileName;
+	}
+
+	public String getJksFilePassword() {
+		return jksFilePassword;
+	}
+
+	public void setJksFilePassword(String jksFilePassword) {
+		this.jksFilePassword = jksFilePassword;
+	}
+
+	public String getJksAlias() {
+		return jksAlias;
+	}
+
+	public void setJksAlias(String jksAlias) {
+		this.jksAlias = jksAlias;
+	}
+
+	public String getJksAliasPassword() {
+		return jksAliasPassword;
+	}
+
+	public void setJksAliasPassword(String jksAliasPassword) {
+		this.jksAliasPassword = jksAliasPassword;
+	}
+
+	@Value("${jks.file.alias}")
+	private String jksAlias;
+	
+	@Value("${jks.file.alias.password}")
+	private String jksAliasPassword;
+	
+	public String getKey1() {
+		return key1;
+	}
+
+	public void setKey1(String key1) {
+		this.key1 = key1;
+	}
+
+	public String getKey2() {
+		return key2;
+	}
+
+	public void setKey2(String key2) {
+		this.key2 = key2;
+	}
+	
+	public String getDriverClassName() {
+		return driverClassName;
+	}
+
+	public void setDriverClassName(String driverClassName) {
+		this.driverClassName = driverClassName;
+	}
+
 	@Bean(destroyMethod = "close")
 	public DataSource getDataSource() {
 		this.pool = new org.apache.tomcat.jdbc.pool.DataSource();

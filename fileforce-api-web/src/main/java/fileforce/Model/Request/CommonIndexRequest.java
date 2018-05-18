@@ -26,6 +26,21 @@ public class CommonIndexRequest {
 		private String sessionId;
 		private String filesLibraryId;
 		private String orgId;
+		private String userName;
+		private String sourceOrg;
+		
+		public String getUserName() {
+			return userName;
+		}
+		public void setUserName(String userName) {
+			this.userName = userName;
+		}
+		public String getSourceOrg() {
+			return sourceOrg;
+		}
+		public void setSourceOrg(String sourceOrg) {
+			this.sourceOrg = sourceOrg;
+		}
 		
 		public String getOrgId() {
 			return orgId;

@@ -40,7 +40,7 @@ public class ParserUtils {
 		}
 		Gson gson = new Gson(); 
 		String json = gson.toJson(mapPlatformIdBody);
-		System.out.println("converted JSON=========" + json + "=== converted JSON");
+		//System.out.println("converted JSON=========" + json + "=== converted JSON");
 		return mapPlatformIdBody;
 	}
 	
