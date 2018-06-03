@@ -94,7 +94,7 @@ public class ParserUtilsWeb {
 												Map<String, IndexServiceResponse> mapPlatformIdBody){
 			HttpURLConnection connection = null;
 			try{
-				URL url = new URL(commonIndexRequest.getPlatform().getEndpoint() + "/" + commonIndexRequest.getPlatform().getPlatform_file_id());
+				URL url = new URL(commonIndexRequest.getPlatform().getEndpointSingle() + "/" + commonIndexRequest.getPlatform().getPlatform_file_id());
 				connection = (HttpURLConnection) url.openConnection();
 				connection.setRequestMethod("GET");
 				connection.setRequestProperty("Authorization", "Bearer " + gDriveResponseObj.getAccess_token());
@@ -137,7 +137,9 @@ public class ParserUtilsWeb {
 				//not supporting Images for now
 				String fileTitle = gDriveFileResponseObj.getTitle().toLowerCase();
 				if(!(fileTitle.contains("jpeg") || fileTitle.contains("jpg"))){
-					if(fileTitle.contains("doc") || fileTitle.contains("docx")){
+					if(fileTitle.contains("doc") || fileTitle.contains("docx") || 
+											gDriveFileResponseObj.getMimeType().contains("textPlain") || 
+											gDriveFileResponseObj.getMimeType().contains("textCSV")){
 						if(gDriveFileResponseObj.getExportLinks() != null && gDriveFileResponseObj.getExportLinks().getTextPlain() != null){
 							getTheFinalTextData(gDriveFileResponseObj, mapPlatformIdBody);
 						}

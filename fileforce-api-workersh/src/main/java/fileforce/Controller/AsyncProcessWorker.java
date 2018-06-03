@@ -34,12 +34,13 @@ import com.google.gson.Gson;
 
 import fileforce.Configuration.AppConfig;
 import fileforce.Configuration.RabbitConfiguration;
+import fileforce.Helper.FileForceUtility;
 import fileforce.Helper.ParserUtils;
 import fileforce.MapperWorker.CommonMapperWorker;
 import fileforce.Model.Request.CommonIndexRequest;
 import fileforce.Model.Response.ContentVersionResponseWorker;
+import fileforce.Model.Response.GoogleDriveFilesResponseWorker;
 import fileforce.Model.Response.IndexServiceResponseWorker;
-import fileforce.Model.Response.MasterTableResponseWorker;
 import fileforce.Model.Response.SalesforceAuthTokenResponse;
 
 @Configuration
@@ -67,7 +68,7 @@ public class AsyncProcessWorker {
         listenerContainer.setConnectionFactory(rabbitConnectionFactory);
         listenerContainer.setQueueNames(rabbitQueue.getName());
         
-        CommonMapperWorker mapper = ctx.getBean(CommonMapperWorker.class);
+        //CommonMapperWorker mapper = ctx.getBean(CommonMapperWorker.class);
         
         // set the callback for message handling
         listenerContainer.setMessageListener(new MessageListener() {
@@ -77,21 +78,40 @@ public class AsyncProcessWorker {
             	Gson gson = new Gson(); 
             	final CommonIndexRequest commonRequest = gson.fromJson(str, CommonIndexRequest.class);
                 // simply printing out the operation, but expensive computation could happen here
-                
-            	if(commonRequest.getPlatform() != null && commonRequest.getPlatform().getPlatformName().equalsIgnoreCase(GOOGLE_DRIVE)){
-            		MasterTableResponseWorker mTableResponseObj = mapper.getMasterDataWorker(commonRequest.getSalesforce().getOrgId());
-        			System.out.println("Received from RabbitMQ Schema Name : " + mTableResponseObj.getSchemaName());
-        			if(mTableResponseObj.getSchemaName() != null){
-        				Map<String, IndexServiceResponseWorker> mapPlatformIdAndResponse = runIndexingForEveryFile(commonRequest, mTableResponseObj, mapper);
-        				//TODO
-        				//Call the Salesforce rest service to dump the data.
-        				if(mapPlatformIdAndResponse != null){
-        					List<IndexServiceResponseWorker> lstIndexResponses = new ArrayList<IndexServiceResponseWorker>(mapPlatformIdAndResponse.values());
-        					System.out.println("lstIndexResponses size  =======" + lstIndexResponses.size());
-        					makeHTTPCallToSalesforce(lstIndexResponses, commonRequest);
-        				}
-        			}
-        		}
+            	try{
+            		if(commonRequest.getPlatform() != null && commonRequest.getPlatform().getPlatformName().equalsIgnoreCase(GOOGLE_DRIVE)){
+                		if(commonRequest.getSalesforce().isInitial_sync()){
+                			//Fetch All Google Drive Files
+                			//Send the body without INDEX
+                			GoogleDriveFilesResponseWorker gDriveFilesResponseWorkerObj = FileForceUtility.fetchAllGoogleDriveFiles(commonRequest);
+                			List<IndexServiceResponseWorker> lstIndexResponses = new ArrayList<IndexServiceResponseWorker>();
+                			for(GoogleDriveFilesResponseWorker.GoogleFile fileObj : gDriveFilesResponseWorkerObj.getFiles()){
+                				IndexServiceResponseWorker tempObj = new IndexServiceResponseWorker(fileObj.getName(), 			
+                																					fileObj.getMimeType(), 
+                																					fileObj.getId(), 
+                																					fileObj.getKind());
+                				lstIndexResponses.add(tempObj);
+                			}
+                			makeHTTPCallToSalesforce(lstIndexResponses, commonRequest);
+                		}else{
+    	            		//MasterTableResponseWorker mTableResponseObj = mapper.getMasterDataWorker(commonRequest.getSalesforce().getOrgId());
+    	        			//System.out.println("Received from RabbitMQ Schema Name : " + mTableResponseObj.getSchemaName());
+    	        			//if(mTableResponseObj.getSchemaName() != null){
+    	        				//Map<String, IndexServiceResponseWorker> mapPlatformIdAndResponse = runIndexingForEveryFile(commonRequest, mTableResponseObj, mapper);
+    	        				//TODO
+    	        				//Call the Salesforce rest service to dump the data.
+                			Map<String, IndexServiceResponseWorker> mapPlatformIdAndResponse = runIndexingForEveryFile(commonRequest);
+            				if(mapPlatformIdAndResponse != null){
+            					List<IndexServiceResponseWorker> lstIndexResponses = new ArrayList<IndexServiceResponseWorker>(mapPlatformIdAndResponse.values());
+            					System.out.println("lstIndexResponses size  =======" + lstIndexResponses.size());
+            					makeHTTPCallToSalesforce(lstIndexResponses, commonRequest);
+            				}
+    	        			//}
+                		}
+            		}
+            	}catch(Exception e){
+            		System.out.println("In Exception == " + e.getMessage());
+            	}
             }
         });
 
@@ -239,16 +259,21 @@ public class AsyncProcessWorker {
 			    JSONArray listParsedFiles = new JSONArray();
 			    for(IndexServiceResponseWorker tempObj : lstIndexResponses){
 			    	JSONObject obj = new JSONObject();
-				    obj.put("platform_id", tempObj.getPlatform_id());
+			    	obj.put("platform_id", tempObj.getPlatform_id());
 				    obj.put("type", tempObj.getType());
 				    obj.put("mimeType", tempObj.getMimeType());
 				    obj.put("platform", tempObj.getPlatform());
 				    obj.put("url", tempObj.getUrl());
 				    obj.put("name", tempObj.getName());
+				    String finalString = tempObj.getIndex() != null ? tempObj.getIndex().replaceAll("[^a-z A-Z0-9]","") : "";
+			    	obj.put("index", finalString);
+				    //1AaC91q99CTfqa0XRAbhmMktLl0WYpAj5U4yxAtD0mD4
+				    //1JNnny5dql9cRdmuqqobBCvBlHvv_rTuS3M1CrSzjX3E
+			    	//app  working  APP Configuration upload app  your ﻿Partner Define dev enable per 1  if flow app in authorizes want signed personal it as JKS following domain Package redirect_uri 2  environment  A be images  functionality URL current file Generate by 3  Download connecte a it  store too  the connected first  self 4  to scopes Managed open Add Once project used salesforce FileForce”  5  This bearer from needs add which new test below need created JWT profiles this IMPORTANT Management  Please 6  Certificate salesforce  “Authorize settings  Org folder  certificate link show https://login salesforce com/services/oauth2/authorize?client_id=3MVG95NPsF2gwOiNgyqtZADg2uWtpzF0B4X5wc5j ZX2VGvKWpmhEQp0U7Zhv2usa9bhY3lb6uGmLOZHLavbY&redirect_uri=https://fileforce api herokuapp com/index html&response_type=code&source=https://ap5 salesforce com Source we button Create and Auth of Salesforce will org custom start say message We Oauth with Client_Id user org  certificate
 				    listParsedFiles.add(obj);
+				    //System.out.println("===== new Index JSON===" + obj.toJSONString() + " ====" + tempObj.getPlatform_id());
 			    }
 		        String json2 = listParsedFiles.toJSONString();
-				
 				DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
 		        outputStream.writeBytes(json2);
 		        outputStream.flush();
@@ -286,14 +311,33 @@ public class AsyncProcessWorker {
 	}
 	
 	//method to fetch every file and parse it with common parser
-	private static Map<String, IndexServiceResponseWorker> runIndexingForEveryFile(CommonIndexRequest commonRequest, 
-											MasterTableResponseWorker mTableResponseObj,
-											CommonMapperWorker mapper){
-		List<ContentVersionResponseWorker> listGoogleDriveFiles  = mapper.getContentVersionData(mTableResponseObj.getSchemaName());
-		if(listGoogleDriveFiles != null && listGoogleDriveFiles.size() > 0){
-			System.out.println("Size of the files from database : " + listGoogleDriveFiles.size());
-			Map<String, IndexServiceResponseWorker> mapPlatformIdAndResponse = ParserUtils.parsefiles(commonRequest, listGoogleDriveFiles);
-			return mapPlatformIdAndResponse;
+	private static Map<String, IndexServiceResponseWorker> runIndexingForEveryFile(CommonIndexRequest commonRequest){
+		//List<ContentVersionResponseWorker> listGoogleDriveFiles  = mapper.getContentVersionData(new ContentVersionRequest(mTableResponseObj.getSchemaName(), 1));
+		GoogleDriveFilesResponseWorker gDriveFilesResponseWorkerObj = FileForceUtility.fetchAllGoogleDriveFiles(commonRequest);
+		if(gDriveFilesResponseWorkerObj != null){
+			List<ContentVersionResponseWorker> listGoogleDriveFiles = new ArrayList<ContentVersionResponseWorker>();
+			//introducing a count variable for testing purposes
+			int countRecords = 0;
+			String testPlatformIds = "";
+			for(GoogleDriveFilesResponseWorker.GoogleFile fileObj : gDriveFilesResponseWorkerObj.getFiles()){
+				ContentVersionResponseWorker tempObj = new ContentVersionResponseWorker();
+				tempObj.setExternalId(fileObj.getId());
+				tempObj.setTitle(fileObj.getName());
+				tempObj.setKind(fileObj.getKind());
+				tempObj.setMimeType(fileObj.getMimeType());
+				listGoogleDriveFiles.add(tempObj);
+				testPlatformIds += fileObj.getId() + "===";
+				countRecords++;
+				if(countRecords == 5){
+					break;
+				}
+			}
+			if(listGoogleDriveFiles != null && listGoogleDriveFiles.size() > 0){
+				System.out.println("Size of the files from Google Drive : " + listGoogleDriveFiles.size());
+				System.out.println("Test Platform Ids : " + testPlatformIds);
+				Map<String, IndexServiceResponseWorker> mapPlatformIdAndResponse = ParserUtils.parsefiles(commonRequest, listGoogleDriveFiles);
+				return mapPlatformIdAndResponse;
+			}
 		}
 		return null;
 	}
@@ -310,7 +354,8 @@ public class AsyncProcessWorker {
        "filesLibraryId":null,
        "orgId":"00D1r000000TYde",
        "userName":"manmeetitsme1987+fileforce-techspike@gmail.com",
-       "sourceOrg":"https://login.salesforce.com"
+       "sourceOrg":"https://login.salesforce.com",
+       "initial_sync":true
     },
     "platform":{  
        "refreshToken":"1/KuWjejdKhpbisf_cRRvJ-bUu35v_JgLiTxePAD4X1oI",
@@ -319,8 +364,9 @@ public class AsyncProcessWorker {
        "clientId":"619983446033-4d4i2ekkmfal2r29ngjegkc0t53qascs.apps.googleusercontent.com",
        "clientSecret":"zDJjNrgtxiVqOuy_C8pajVVm",
        "clientRedirectURI":"https://ff-ts-dev-ed.lightning.force.com/c/GoogleOAuthCompletion.app",
-       "endpoint":"https://www.googleapis.com/drive/v2/files",
-       "platform_file_id":"0B10mHJb-0XqOenh3YXZkY3hZQ00"
+       "endpointAll":"https://www.googleapis.com/drive/v3/files",
+       "endpointSingle":"https://www.googleapis.com/drive/v2/files",
+       "platform_file_id":""
     }
  }
  

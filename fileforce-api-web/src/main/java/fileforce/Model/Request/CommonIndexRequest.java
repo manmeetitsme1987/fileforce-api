@@ -28,7 +28,14 @@ public class CommonIndexRequest {
 		private String orgId;
 		private String userName;
 		private String sourceOrg;
+		private boolean initial_sync;
 		
+		public boolean isInitial_sync() {
+			return initial_sync;
+		}
+		public void setInitial_sync(boolean initial_sync) {
+			this.initial_sync = initial_sync;
+		}
 		public String getUserName() {
 			return userName;
 		}
@@ -76,8 +83,17 @@ public class CommonIndexRequest {
 		private String clientId;
 		private String clientSecret;
 		private String clientRedirectURI;
-		private String endpoint;
+		private String endpointAll;
+		private String endpointSingle;
 		private String platform_file_id;
+		
+		
+		public String getEndpointSingle() {
+			return endpointSingle;
+		}
+		public void setEndpointSingle(String endpointSingle) {
+			this.endpointSingle = endpointSingle;
+		}
 		
 		public String getPlatform_file_id() {
 			return platform_file_id;
@@ -85,11 +101,11 @@ public class CommonIndexRequest {
 		public void setPlatform_file_id(String platform_file_id) {
 			this.platform_file_id = platform_file_id;
 		}
-		public String getEndpoint() {
-			return endpoint;
+		public String getEndpointAll() {
+			return endpointAll;
 		}
-		public void setEndpoint(String endpoint) {
-			this.endpoint = endpoint;
+		public void setEndpointAll(String endpointAll) {
+			this.endpointAll = endpointAll;
 		}
 		public String getToken_endpoint() {
 			return token_endpoint;

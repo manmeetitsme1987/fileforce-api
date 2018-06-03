@@ -97,84 +97,71 @@ public class ParserUtils {
 												CommonIndexRequest commonIndexRequest,
 												GoogleDriveAuthResponseWorker gDriveResponseObj,
 												Map<String, IndexServiceResponseWorker> mapPlatformIdBody){
-			HttpURLConnection connection = null;
-			try{
-				URL url = new URL(commonIndexRequest.getPlatform().getEndpoint() + "/" + fileRequest.getExternalId());
-				//URL url = new URL(commonIndexRequest.getPlatform().getEndpoint() + "/1jTVywFwB2BoVSRgGeAoPKOpUyP_3F3K6K6NHOCFPdw8");
-				connection = (HttpURLConnection) url.openConnection();
-				connection.setRequestMethod("GET");
-				connection.setRequestProperty("Authorization", "Bearer " + gDriveResponseObj.getAccess_token());
-				
-				//Get Response  
-				InputStream is = connection.getInputStream();
-				BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-				StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
-				String inputLine, tempFileType = "";
-				while ((inputLine = rd.readLine()) != null) {
-					if(inputLine.contains("text/plain")){
-						inputLine = inputLine.replaceAll("text/plain", "textPlain");
-						tempFileType = "text/plain";
-					}else if(inputLine.contains("text/csv")){
-						inputLine = inputLine.replaceAll("text/csv", "textCSV");
-						tempFileType = "text/csv";
-					}else if(inputLine.contains("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")){
-						inputLine = inputLine.replaceAll("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "applicationSpreadSheet");
-						tempFileType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-					}else if(inputLine.contains("application/pdf")){
-						inputLine = inputLine.replaceAll("application/pdf", "applicationPDF");
-						tempFileType = "application/pdf";
-					}else if(inputLine.contains("application/vnd.openxmlformats-officedocument.presentationml.presentation")){
-						inputLine = inputLine.replaceAll("application/vnd.openxmlformats-officedocument.presentationml.presentation", "applicationPPT");
-						tempFileType = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+				HttpURLConnection connection = null;
+				Set<String> tokens = new HashSet<String>();
+				try{
+					URL url = new URL(commonIndexRequest.getPlatform().getEndpointSingle() + "/" + fileRequest.getExternalId());
+					if(fileRequest.getMimeType().contains("application/vnd.google-apps.spreadsheet")){
+						url = new URL("https://www.googleapis.com/drive/v3/files/"+fileRequest.getExternalId()+"/export?mimeType=text/csv");
+					}else if(fileRequest.getMimeType().contains("application/vnd.google-apps.document")){
+						url = new URL("https://www.googleapis.com/drive/v3/files/"+fileRequest.getExternalId()+"/export?mimeType=text/plain");
 					}
-					response.append(inputLine);
-					response.append("\r");
-				}
-				rd.close();
-				Gson gson = new Gson();
-				GoogleDriveFileResponseWorker gDriveFileResponseObj = gson.fromJson(response.toString(), GoogleDriveFileResponseWorker.class);
-				mapPlatformIdBody.put(gDriveFileResponseObj.getId(), new IndexServiceResponseWorker(gDriveFileResponseObj.getTitle(),
-																								gDriveFileResponseObj.getKind(),
-																								tempFileType,
-																								AsyncProcessWorker.GOOGLE_DRIVE,
-																								gDriveFileResponseObj.getId(),
-																								gDriveFileResponseObj.getWebContentLink(),
-																								commonIndexRequest.getSalesforce().getFilesLibraryId()));
-				//not supporting Images for now
-				String fileTitle = gDriveFileResponseObj.getTitle().toLowerCase();
-				if(!(fileTitle.contains("jpeg") || fileTitle.contains("jpg"))){
-					if(fileTitle.contains("doc") || fileTitle.contains("docx")){
-						if(gDriveFileResponseObj.getExportLinks() != null && gDriveFileResponseObj.getExportLinks().getTextPlain() != null){
-							getTheFinalTextData(gDriveFileResponseObj, mapPlatformIdBody);
+					connection = (HttpURLConnection) url.openConnection();
+					connection.setRequestMethod("GET");
+					connection.setRequestProperty("Authorization", "Bearer " + gDriveResponseObj.getAccess_token());
+					
+					//Get Response  
+					InputStream is = connection.getInputStream();
+					BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+					StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
+					String inputLine;
+					while ((inputLine = rd.readLine()) != null) {
+						response.append(inputLine);
+						for(String str : inputLine.split(" ")){
+							tokens.add(str);
 						}
-					}else if(gDriveFileResponseObj.getMimeType().contains("spreadsheet")){
-						SelfParserUtilityWorker.readXLSXFile(gDriveFileResponseObj.getExportLinks().getApplicationSpreadSheet(), 
-														gDriveFileResponseObj.getId(), 
-														mapPlatformIdBody);
-				
-					}else if(gDriveFileResponseObj.getMimeType().contains("applicationPDF")){
-						SelfParserUtilityWorker.readPDFFile(gDriveFileResponseObj.getWebContentLink(), 
-														gDriveFileResponseObj.getId(), 
-														mapPlatformIdBody);
-					}else if(gDriveFileResponseObj.getMimeType().contains("applicationPPT")){
-						//if(gDriveFileResponseObj.getTitle().contains("pptx")){
-							SelfParserUtilityWorker.readPPTXFile(gDriveFileResponseObj.getWebContentLink(), 
+						//response.append("\r");
+					}
+					rd.close();
+					if(fileRequest.getMimeType().contains("application/vnd.google-apps.document") || fileRequest.getMimeType().contains("application/vnd.google-apps.spreadsheet")){
+						//now making the string again
+						StringBuilder finalResponse = new StringBuilder();
+						for(String value : tokens){
+							finalResponse.append(value + " ");
+					    }
+						mapPlatformIdBody.put(fileRequest.getExternalId(), new IndexServiceResponseWorker(fileRequest.getTitle(),
+								fileRequest.getKind(),
+								fileRequest.getMimeType(),
+								AsyncProcessWorker.GOOGLE_DRIVE,
+								fileRequest.getExternalId(),
+								"",
+								commonIndexRequest.getSalesforce().getFilesLibraryId()));
+						mapPlatformIdBody.get(fileRequest.getExternalId()).setIndex(finalResponse.toString());
+					}
+					/*
+					if(fileRequest.getMimeType().contains("application/vnd.google-apps.spreadsheet")){
+						Gson gson = new Gson();
+						GoogleDriveFileResponseWorker gDriveFileResponseObj = gson.fromJson(response.toString(), GoogleDriveFileResponseWorker.class);
+						mapPlatformIdBody.put(gDriveFileResponseObj.getId(), new IndexServiceResponseWorker(gDriveFileResponseObj.getTitle(),
+																										gDriveFileResponseObj.getKind(),
+																										gDriveFileResponseObj.getMimeType(),
+																										AsyncProcessWorker.GOOGLE_DRIVE,
+																										gDriveFileResponseObj.getId(),
+																										gDriveFileResponseObj.getWebContentLink(),
+																										commonIndexRequest.getSalesforce().getFilesLibraryId()));
+						
+						//For Google Drive Spread Sheets
+						SelfParserUtilityWorker.readXLSXFile("https://docs.google.com/spreadsheets/export?id="+ gDriveFileResponseObj.getId() +"&exportFormat=xlsx", 
 									gDriveFileResponseObj.getId(), 
 									mapPlatformIdBody);
-						//}else{
-						//	SelfParserUtilityWorker.readPPTFile(gDriveFileResponseObj.getWebContentLink(), 
-						//			gDriveFileResponseObj.getId(), 
-						//			mapPlatformIdBody);
-						//}
+					}*/
+				}catch(Exception e){
+					e.printStackTrace();
+				}finally{
+					if (connection != null) {
+						connection.disconnect();
 					}
 				}
-			}catch(Exception e){
-				e.printStackTrace();
-			}finally{
-				if (connection != null) {
-					connection.disconnect();
-				}
-			}
 		}
 	
 	private static void getTheFinalTextData(GoogleDriveFileResponseWorker gDriveFileResponseObj, Map<String, IndexServiceResponseWorker> mapPlatformIdBody){

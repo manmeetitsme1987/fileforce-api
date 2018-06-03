@@ -410,9 +410,8 @@ public class GoogleDriveFileResponseWorker {
 		private String applicationZIP;
 		private String wordDocument;
 		private String textPlain;
-		
-		@JsonProperty(value="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 		private String applicationSpreadSheet;
+		private String textCSV;
 		
 		public String getTextCSV() {
 			return textCSV;
@@ -429,85 +428,66 @@ public class GoogleDriveFileResponseWorker {
 		public void setTextCSV(String textCSV) {
 			this.textCSV = textCSV;
 		}
-
-		private String textCSV;
-		
-		@JsonProperty(value="application/rtf")
 		public String getApplicationRTF() {
 			return applicationRTF;
 		}
 
-		@JsonProperty(value="application/rtf")
 		public void setApplicationRTF(String applicationRTF) {
 			this.applicationRTF = applicationRTF;
 		}
 		
-		@JsonProperty(value="application/vnd.oasis.opendocument.text")
 		public String getOpenDocumentTetxt() {
 			return openDocumentTetxt;
 		}
 		
-		@JsonProperty(value="application/vnd.oasis.opendocument.text")
 		public void setOpenDocumentTetxt(String openDocumentTetxt) {
 			this.openDocumentTetxt = openDocumentTetxt;
 		}
 		
-		@JsonProperty(value="text/html")
 		public String getTextHTML() {
 			return textHTML;
 		}
 		
-		@JsonProperty(value="text/html")
 		public void setTextHTML(String textHTML) {
 			this.textHTML = textHTML;
 		}
 		
-		@JsonProperty(value="application/pdf")
 		public String getApplicationPDF() {
 			return applicationPDF;
 		}
 		
-		@JsonProperty(value="application/pdf")
 		public void setApplicationPDF(String applicationPDF) {
 			this.applicationPDF = applicationPDF;
 		}
 		
-		@JsonProperty(value="application/epub+zip")
 		public String getApplicationEpubZip() {
 			return applicationEpubZip;
 		}
 		
-		@JsonProperty(value="application/epub+zip")
 		public void setApplicationEpubZip(String applicationEpubZip) {
 			this.applicationEpubZip = applicationEpubZip;
 		}
 		
-		@JsonProperty(value="application/zip")
 		public String getApplicationZIP() {
 			return applicationZIP;
 		}
 		
-		@JsonProperty(value="application/zip")
 		public void setApplicationZIP(String applicationZIP) {
 			this.applicationZIP = applicationZIP;
 		}
 		
-		@JsonProperty(value="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 		public String getWordDocument() {
 			return wordDocument;
 		}
 
-		@JsonProperty(value="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 		public void setWordDocument(String wordDocument) {
 			this.wordDocument = wordDocument;
 		}
 		
-		@JsonProperty(value="text/plain")
 		public String getTextPlain() {
 			return textPlain;
 		}
 		
-		@JsonProperty(value="text/plain")
 		public void setTextPlain(String textPlain) {
 			this.textPlain = textPlain;
 		}

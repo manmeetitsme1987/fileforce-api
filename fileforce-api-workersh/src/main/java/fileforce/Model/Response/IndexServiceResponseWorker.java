@@ -11,7 +11,16 @@ public class IndexServiceResponseWorker {
 	private String url			;				
 	private String firstPublishLocationId;
 	private String name;
+	private String kind;
 	
+	
+	public String getKind() {
+		return kind;
+	}
+	public void setKind(String kind) {
+		this.kind = kind;
+	}
+
 	public String getIndex() {
 		return index;
 	}
@@ -76,6 +85,14 @@ public class IndexServiceResponseWorker {
 		this.platform_id = platform_id;
 		this.url = url;
 		this.firstPublishLocationId = firstPublishLocationId;
+		
+	}
+	
+	public IndexServiceResponseWorker(String name, String mimeType, String platform_id, String kind){
+		this.name = name;
+		this.mimeType = mimeType;
+		this.platform_id = platform_id;
+		this.kind = kind;
 		
 	}
 }

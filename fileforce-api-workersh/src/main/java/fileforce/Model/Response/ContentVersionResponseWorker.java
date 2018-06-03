@@ -5,9 +5,21 @@ public class ContentVersionResponseWorker {
 	private String externalId;
 	private String fileExtension;
 	private String fileType;
-	private String firstPublicationId;
 	private String title;
-	private String contentDocumentId;
+	private String kind;
+	public String getKind() {
+		return kind;
+	}
+	public void setKind(String kind) {
+		this.kind = kind;
+	}
+	public String getMimeType() {
+		return mimeType;
+	}
+	public void setMimeType(String mimeType) {
+		this.mimeType = mimeType;
+	}
+	private String mimeType;
 	
 	public String getId() {
 		return id;
@@ -33,23 +45,11 @@ public class ContentVersionResponseWorker {
 	public void setFileType(String fileType) {
 		this.fileType = fileType;
 	}
-	public String getFirstPublicationId() {
-		return firstPublicationId;
-	}
-	public void setFirstPublicationId(String firstPublicationId) {
-		this.firstPublicationId = firstPublicationId;
-	}
 	public String getTitle() {
 		return title;
 	}
 	public void setTitle(String title) {
 		this.title = title;
-	}
-	public String getContentDocumentId() {
-		return contentDocumentId;
-	}
-	public void setContentDocumentId(String contentDocumentId) {
-		this.contentDocumentId = contentDocumentId;
 	}
 
 }

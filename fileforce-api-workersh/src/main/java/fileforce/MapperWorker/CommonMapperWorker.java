@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Select;
 
+import fileforce.Model.Request.ContentVersionRequest;
 import fileforce.Model.Response.ContentVersionResponseWorker;
 import fileforce.Model.Response.MasterTableResponseWorker;
 
@@ -17,6 +18,6 @@ public interface CommonMapperWorker {
 	//fetch Google Drive Data
 	@Select("select id as id, External_Id__c as externalId, FileExtension as fileExtension, "
 			+ "FileType as fileType, FirstPublishLocationId as firstPublicationId, Title as title, "
-			+ "ContentDocumentId as contentDocumentId from techspike.ContentVersion WHERE id is not null limit 10")
-	List<ContentVersionResponseWorker> getContentVersionData(String schemaName);
+			+ "ContentDocumentId as contentDocumentId from ${schemaName}.ContentVersion WHERE id is not null limit ${limit}")
+	List<ContentVersionResponseWorker> getContentVersionData(ContentVersionRequest contentVersionRequest);
 }

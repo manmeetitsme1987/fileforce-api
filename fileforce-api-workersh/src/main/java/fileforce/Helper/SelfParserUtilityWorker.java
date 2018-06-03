@@ -47,7 +47,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import fileforce.Controller.AsyncProcessWorker;
 import fileforce.Model.Response.IndexServiceResponseWorker;
 
 public class SelfParserUtilityWorker {
